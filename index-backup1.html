@@ -1771,11 +1771,11 @@ function renderGateOut(){
       <td><button class="btn btn-sm btn-accent" onclick="openGateOut('${c.id}')"><i class="fa-solid fa-door-closed me-1"></i>Gate Out</button></td></tr>`).join('')
       || `<tr><td colspan="5" class="text-center text-muted py-3">No containers pending gate out.</td></tr>`;
   } else {
-    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Return to Shipping Line</th><th>Gate Out Date</th><th>Status</th><th>Action</th></tr>`;
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Gate Out Date</th><th>Status</th><th>Action</th></tr>`;
     const rows = DB.filter(c=>c.status==="Gated Out");
-    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.shippingLine}</td><td>${c.gateOutDate}</td><td>${statusBadge(c.status)}</td>
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.gateOutDate}</td><td>${statusBadge(c.status)}</td>
       <td><button class="btn btn-sm btn-outline-success" onclick="openCloseJob('${c.id}')"><i class="fa-solid fa-box-archive me-1"></i>Close Job</button></td></tr>`).join('')
-      || `<tr><td colspan="6" class="text-center text-muted py-3">No containers pending job closure.</td></tr>`;
+      || `<tr><td colspan="5" class="text-center text-muted py-3">No containers pending job closure.</td></tr>`;
   }
 }
 function openEmptyReturn(id){
