@@ -1,0 +1,2020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICD Management | Inland Container Depot Management</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#0b2545; --navy-2:#123a6b; --navy-light:#1a4a80;
+  --accent:#e8890c; --accent-2:#0d9488;
+  --bg:#f4f6fa; --card:#ffffff; --border:#e2e8f0;
+  --text:#1a2437; --text-mute:#64748b;
+  --ok:#16a34a; --warn:#d97706; --danger:#dc2626; --info:#2563eb;
+}
+*{box-sizing:border-box;}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);margin:0;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+#sidebar{
+  width:260px;background:linear-gradient(180deg,var(--navy) 0%,var(--navy-2) 100%);
+  min-height:100vh;position:fixed;top:0;left:0;z-index:1030;transition:transform .25s ease;
+  display:flex;flex-direction:column;
+}
+#sidebar .brand{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.1);}
+#sidebar .brand .title{color:#fff;font-weight:700;font-size:1.05rem;letter-spacing:.3px;}
+#sidebar .brand .sub{color:#9fb3d1;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;}
+#sidebar .nav-scroll{overflow-y:auto;flex:1;padding:10px 0 20px;}
+.nav-section-label{color:#7d93b8;font-size:.68rem;text-transform:uppercase;letter-spacing:1px;padding:14px 20px 6px;font-weight:600;}
+.side-link{display:flex;align-items:center;gap:12px;color:#cfdcf0;padding:10px 20px;font-size:.87rem;cursor:pointer;border-left:3px solid transparent;text-decoration:none;}
+.side-link i{width:18px;text-align:center;color:#89a5cc;font-size:.85rem;}
+.side-link:hover{background:rgba(255,255,255,.06);color:#fff;}
+.side-link.active{background:rgba(255,255,255,.1);border-left-color:var(--accent);color:#fff;font-weight:600;}
+.side-link.active i{color:var(--accent);}
+#main{margin-left:260px;transition:margin .25s ease;}
+#topbar{
+  background:#fff;border-bottom:1px solid var(--border);padding:10px 22px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1020;
+}
+#topbar .path{font-size:.8rem;color:var(--text-mute);}
+#topbar .path b{color:var(--text);}
+#content{padding:22px;}
+.card-x{background:var(--card);border:1px solid var(--border);border-radius:10px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;height:100%;}
+.kpi .bar{position:absolute;left:0;top:0;bottom:0;width:4px;}
+.kpi .label{font-size:.72rem;color:var(--text-mute);text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+.kpi .value{font-size:1.55rem;font-weight:700;margin-top:4px;}
+.kpi .foot{font-size:.72rem;color:var(--text-mute);margin-top:4px;}
+.page-title{font-size:1.25rem;font-weight:700;margin:0;}
+.page-desc{color:var(--text-mute);font-size:.85rem;margin-top:2px;}
+.btn-navy{background:var(--navy);border-color:var(--navy);color:#fff;}
+.btn-navy:hover{background:var(--navy-2);color:#fff;}
+.btn-accent{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-accent:hover{background:#c8740a;color:#fff;}
+table.table-erp{font-size:.82rem;}
+table.table-erp thead th{background:#f1f5f9;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px;color:var(--text-mute);font-weight:700;border-bottom:2px solid var(--border);white-space:nowrap;}
+table.table-erp td{vertical-align:middle;white-space:nowrap;}
+.badge-status{font-size:.68rem;padding:5px 9px;font-weight:600;border-radius:20px;}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;}
+.form-label{font-size:.78rem;font-weight:600;color:#334155;}
+.form-control,.form-select{font-size:.85rem;}
+.section-hd{font-size:.85rem;font-weight:700;color:var(--navy);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.4px;}
+.view{display:none;}
+.view.active{display:block;}
+.stepper{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:18px;}
+.step-chip{font-size:.68rem;padding:5px 10px;border-radius:20px;background:#eef2f7;color:var(--text-mute);border:1px solid var(--border);white-space:nowrap;}
+.step-chip.done{background:#dcfce7;color:#166534;border-color:#bbf7d0;}
+.step-chip.now{background:var(--navy);color:#fff;border-color:var(--navy);}
+.toast-wrap{position:fixed;top:16px;right:16px;z-index:2000;}
+#gateOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1040;}
+.hamburger{display:none;background:none;border:none;font-size:1.2rem;color:var(--navy);}
+.small-muted{font-size:.72rem;color:var(--text-mute);}
+.progress{height:8px;border-radius:6px;}
+.filter-bar{background:#fff;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;}
+.stat-pill{display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:600;color:#334155;}
+@media(max-width:991px){
+  #sidebar{transform:translateX(-260px);}
+  #sidebar.open{transform:translateX(0);}
+  #main{margin-left:0;}
+  .hamburger{display:inline-block;}
+}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-thumb{background:#c7d2e0;border-radius:10px;}
+.timeline{position:relative;padding-left:28px;}
+.timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--border);}
+.tl-item{position:relative;padding-bottom:20px;}
+.tl-dot{position:absolute;left:-28px;top:2px;width:18px;height:18px;border-radius:50%;background:#e2e8f0;border:3px solid #fff;box-shadow:0 0 0 2px #e2e8f0;}
+.tl-item.done .tl-dot{background:var(--ok);box-shadow:0 0 0 2px var(--ok);}
+.tl-item.now .tl-dot{background:var(--accent);box-shadow:0 0 0 2px var(--accent);}
+.tl-title{font-weight:600;font-size:.85rem;}
+.tl-meta{font-size:.72rem;color:var(--text-mute);}
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div class="brand">
+    <div class="d-flex align-items-center gap-2">
+      <i class="fa-solid fa-warehouse" style="color:var(--accent);font-size:1.3rem;"></i>
+      <div>
+        <div class="title">ICD Management</div>
+        <div class="sub">ACME &amp; Dar ICD · Tanzania</div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-scroll">
+    <div class="nav-section-label">Overview</div>
+    <a class="side-link" data-view="dashboard"><i class="fa-solid fa-gauge-high"></i> ICD Dashboard</a>
+
+    <div class="nav-section-label">Master Data</div>
+    <a class="side-link" data-view="masters"><i class="fa-solid fa-database"></i> Masters (40 registers)</a>
+
+    <div class="nav-section-label">Transactions</div>
+    <a class="side-link" data-view="arrival"><i class="fa-solid fa-ship"></i> Container Arrival</a>
+    <a class="side-link" data-view="gatein"><i class="fa-solid fa-door-open"></i> ICD Gate In</a>
+    <a class="side-link" data-view="yard"><i class="fa-solid fa-warehouse"></i> Yard Allocation</a>
+    <a class="side-link" data-view="customs"><i class="fa-solid fa-stamp"></i> Customs &amp; Duty</a>
+    <a class="side-link" data-view="delivery"><i class="fa-solid fa-truck-ramp-box"></i> Delivery Order &amp; Dispatch</a>
+    <a class="side-link" data-view="gateout"><i class="fa-solid fa-door-closed"></i> Gate Out &amp; Closure</a>
+    <a class="side-link" data-view="invoice"><i class="fa-solid fa-file-invoice-dollar"></i> Invoice &amp; Billing</a>
+    <a class="side-link" data-view="tracking"><i class="fa-solid fa-route"></i> Container Tracking</a>
+
+    <div class="nav-section-label">Reports</div>
+    <a class="side-link" data-view="rep-gate"><i class="fa-solid fa-clipboard-list"></i> Gate In / Out Report</a>
+    <a class="side-link" data-view="rep-yard"><i class="fa-solid fa-chart-simple"></i> Yard Occupancy</a>
+    <a class="side-link" data-view="rep-aging"><i class="fa-solid fa-hourglass-half"></i> Aging &amp; Demurrage</a>
+    <a class="side-link" data-view="rep-customs"><i class="fa-solid fa-file-invoice-dollar"></i> Customs Clearance</a>
+    <a class="side-link" data-view="rep-revenue"><i class="fa-solid fa-sack-dollar"></i> Revenue &amp; Billing</a>
+    <a class="side-link" data-view="rep-invoice"><i class="fa-solid fa-receipt"></i> Invoice Report</a>
+  </div>
+  <div class="p-3 border-top border-light border-opacity-10 small text-white-50" style="font-size:.7rem;">
+    Lodhia Industries / RSA Group<br>Demo data · localStorage
+  </div>
+</div>
+
+<div id="main">
+  <div id="topbar">
+    <div class="d-flex align-items-center gap-2">
+      <button class="hamburger" id="hamBtn"><i class="fa-solid fa-bars"></i></button>
+      <div class="path">ICD Management / <b id="crumbLabel">ICD Dashboard</b></div>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+      <span class="small-muted d-none d-md-inline"><i class="fa-regular fa-clock"></i> <span id="clock"></span></span>
+      <span class="stat-pill"><i class="fa-solid fa-circle" style="color:var(--ok);font-size:.5rem;"></i> ACME-ICD-Online</span>
+      <div class="dropdown">
+        <button class="btn btn-sm btn-light border dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-user"></i> M. Chaturvedi</button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="#" onclick="resetSeed();return false;"><i class="fa-solid fa-rotate-left me-2"></i>Reset demo data</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- ============ DASHBOARD ============ -->
+    <div class="view" id="view-dashboard">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+          <h1 class="page-title">ICD Dashboard</h1>
+          <div class="page-desc">Live snapshot of container operations — ACME ICD &amp; Dar es Salaam ICD (TICTS)</div>
+        </div>
+        <div class="small-muted">Last refreshed <span id="dashTime"></span></div>
+      </div>
+      <div class="row g-3" id="kpiRow"></div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-lg-4">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Containers by Status</div>
+            <canvas id="chStatus" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Shipping Line Volume</div>
+            <canvas id="chLine" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Yard Occupancy</div>
+            <canvas id="chYard" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-lg-8">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Monthly Gate In / Gate Out Trend</div>
+            <canvas id="chTrend" height="110"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Top Customers (by Containers)</div>
+            <div id="topCustomers"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-3 mt-1 mb-3">
+        <div class="col-12">
+          <div class="card-x p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="section-hd mb-0 border-0">Pending Actions Queue</div>
+              <span class="small-muted">Requires attention</span>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-erp table-hover mb-0">
+                <thead><tr><th>Container</th><th>Customer</th><th>Status</th><th>Days in Yard</th><th>Pending Action</th><th></th></tr></thead>
+                <tbody id="pendingQueueBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ MASTER DATA MANAGEMENT ============ -->
+    <div class="view" id="view-masters">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+        <div>
+          <h1 class="page-title">Master Data Management</h1>
+          <div class="page-desc">Centralized reference registers used across all ICD transactions</div>
+        </div>
+        <input class="form-control form-control-sm" style="max-width:220px" id="masterNavSearch" placeholder="Search masters...">
+      </div>
+      <div class="row g-3">
+        <div class="col-lg-3">
+          <div class="card-x p-2" style="max-height:75vh;overflow-y:auto;" id="masterNavPanel"></div>
+        </div>
+        <div class="col-lg-9">
+          <div class="card-x p-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+              <div>
+                <h5 class="mb-0" id="activeMasterTitle">—</h5>
+                <div class="small-muted" id="activeMasterDesc"></div>
+              </div>
+              <div class="d-flex gap-2">
+                <input class="form-control form-control-sm" style="max-width:200px" id="masterRowSearch" placeholder="Search records...">
+                <button class="btn btn-sm btn-outline-secondary" id="masterExportBtn"><i class="fa-solid fa-file-excel me-1"></i>Export</button>
+                <button class="btn btn-sm btn-accent" id="masterAddBtn"><i class="fa-solid fa-plus me-1"></i>Add New</button>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-erp table-hover mb-0">
+                <thead id="masterTableHead"></thead>
+                <tbody id="masterTableBody"></tbody>
+              </table>
+            </div>
+            <div class="small-muted mt-2" id="masterRowCount"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CONTAINER ARRIVAL ============ -->
+    <div class="view" id="view-arrival">
+      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+        <div>
+          <h1 class="page-title">Container Arrival</h1>
+          <div class="page-desc">Record vessel discharge at Dar es Salaam Port and initiate ICD transfer</div>
+        </div>
+        <button class="btn btn-accent btn-sm" data-bs-toggle="modal" data-bs-target="#arrivalModal"><i class="fa-solid fa-plus me-1"></i>New Arrival</button>
+      </div>
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center">
+        <input class="form-control form-control-sm" style="max-width:220px" id="arrSearch" placeholder="Search container / B/L / vessel">
+        <select class="form-select form-select-sm" style="max-width:180px" id="arrLineFilter"><option value="">All Shipping Lines</option></select>
+        <button class="btn btn-sm btn-outline-secondary" onclick="renderArrival()"><i class="fa-solid fa-filter me-1"></i>Apply</button>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="exportCSV(getArrivalRows(),'container_arrival')"><i class="fa-solid fa-file-excel me-1"></i>Export</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="fa-solid fa-print me-1"></i>Print</button>
+      </div>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead><tr><th>Container No</th><th>Size/Type</th><th>Shipping Line</th><th>Vessel/Voyage</th><th>B/L No</th><th>Arrival Date</th><th>Cargo</th><th>Customer</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="arrivalBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ ICD GATE IN ============ -->
+    <div class="view" id="view-gatein">
+      <h1 class="page-title">ICD Gate In</h1>
+      <div class="page-desc mb-3">Containers transferred from port awaiting gate-in at ICD</div>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead><tr><th>Container No</th><th>Size/Type</th><th>Shipping Line</th><th>Arrival Date</th><th>Customer</th><th>CHA</th><th>Status</th><th>Gate In Time</th><th>Action</th></tr></thead>
+            <tbody id="gateinBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ YARD ALLOCATION ============ -->
+    <div class="view" id="view-yard">
+      <h1 class="page-title">Container Yard Allocation</h1>
+      <div class="page-desc mb-3">Assign yard block / slot to gated-in containers</div>
+      <div class="row g-3 mb-3" id="yardBlockSummary"></div>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead><tr><th>Container No</th><th>Size</th><th>Gate In Date</th><th>Customer</th><th>Yard Location</th><th>Days in Yard</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="yardBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CUSTOMS & DUTY ============ -->
+    <div class="view" id="view-customs">
+      <h1 class="page-title">Customs Declaration &amp; Duty Payment</h1>
+      <div class="page-desc mb-3">TANCIS declaration, EAC duty assessment (Import Duty, VAT, Excise, Railway Levy) and payment tracking</div>
+      <ul class="nav nav-tabs mb-3" id="customsTabs">
+        <li class="nav-item"><a class="nav-link active" data-ctab="declare" href="#">Pending Declaration</a></li>
+        <li class="nav-item"><a class="nav-link" data-ctab="assess" href="#">Duty Assessment</a></li>
+        <li class="nav-item"><a class="nav-link" data-ctab="pay" href="#">Duty Payment</a></li>
+        <li class="nav-item"><a class="nav-link" data-ctab="inspect" href="#">Inspection &amp; Release</a></li>
+      </ul>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead id="customsHead"></thead>
+            <tbody id="customsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DELIVERY ORDER & DISPATCH ============ -->
+    <div class="view" id="view-delivery">
+      <h1 class="page-title">Delivery Order &amp; Dispatch</h1>
+      <div class="page-desc mb-3">Issue delivery order, plan transport and dispatch to customer</div>
+      <ul class="nav nav-tabs mb-3" id="deliveryTabs">
+        <li class="nav-item"><a class="nav-link active" data-dtab="do" href="#">Issue Delivery Order</a></li>
+        <li class="nav-item"><a class="nav-link" data-dtab="transport" href="#">Transport &amp; Dispatch</a></li>
+        <li class="nav-item"><a class="nav-link" data-dtab="delivered" href="#">Customer Delivery</a></li>
+      </ul>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead id="deliveryHead"></thead>
+            <tbody id="deliveryBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ GATE OUT & CLOSURE ============ -->
+    <div class="view" id="view-gateout">
+      <h1 class="page-title">Empty Return, Gate Out &amp; Job Closure</h1>
+      <div class="page-desc mb-3">Final leg of the container lifecycle</div>
+      <ul class="nav nav-tabs mb-3" id="gateoutTabs">
+        <li class="nav-item"><a class="nav-link active" data-gtab="return" href="#">Empty Return</a></li>
+        <li class="nav-item"><a class="nav-link" data-gtab="out" href="#">Gate Out</a></li>
+        <li class="nav-item"><a class="nav-link" data-gtab="close" href="#">Job Closure</a></li>
+      </ul>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead id="gateoutHead"></thead>
+            <tbody id="gateoutBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ INVOICE & BILLING ============ -->
+    <div class="view" id="view-invoice">
+      <h1 class="page-title">Invoice &amp; Billing</h1>
+      <div class="page-desc mb-3">Generate and manage customer invoices for closed jobs (handling, storage &amp; demurrage)</div>
+      <ul class="nav nav-tabs mb-3" id="invoiceTabs">
+        <li class="nav-item"><a class="nav-link active" data-itab="generate" href="#">Pending Invoice Generation</a></li>
+        <li class="nav-item"><a class="nav-link" data-itab="register" href="#">Invoice Register</a></li>
+      </ul>
+      <div id="invoiceGenerateWrap">
+        <div class="card-x p-2">
+          <div class="table-responsive">
+            <table class="table table-erp table-hover mb-0">
+              <thead><tr><th>Container</th><th>Customer</th><th>Job Closed</th><th>Days in Yard</th><th>Est. Total (TZS)</th><th>Action</th></tr></thead>
+              <tbody id="invoiceGenerateBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div id="invoiceRegisterWrap" style="display:none;">
+        <div class="filter-bar d-flex flex-wrap gap-2 align-items-center">
+          <input class="form-control form-control-sm" style="max-width:200px" id="invRegSearch" placeholder="Search invoice / container / customer">
+          <select class="form-select form-select-sm" style="max-width:160px" id="invRegStatus">
+            <option value="">All Statuses</option><option>Issued</option><option>Paid</option><option>Overdue</option>
+          </select>
+          <button class="btn btn-sm btn-outline-secondary" onclick="renderInvoiceRegister()"><i class="fa-solid fa-filter me-1"></i>Apply</button>
+          <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="exportCSV(getInvoiceRows(),'invoice_register')"><i class="fa-solid fa-file-excel me-1"></i>Export</button>
+        </div>
+        <div class="card-x p-2">
+          <div class="table-responsive">
+            <table class="table table-erp table-hover mb-0">
+              <thead><tr><th>Invoice No</th><th>Container</th><th>Customer</th><th>Invoice Date</th><th>Due Date</th><th>Total (TZS)</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="invoiceRegisterBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ CONTAINER TRACKING ============ -->
+    <div class="view" id="view-tracking">
+      <h1 class="page-title">Container Tracking</h1>
+      <div class="page-desc mb-3">Full lifecycle timeline for a single container</div>
+      <div class="filter-bar d-flex gap-2 align-items-center">
+        <select class="form-select form-select-sm" style="max-width:280px" id="trackSelect"></select>
+        <button class="btn btn-sm btn-navy" onclick="renderTrackingDetail()"><i class="fa-solid fa-magnifying-glass me-1"></i>Track</button>
+      </div>
+      <div id="trackingDetail"></div>
+    </div>
+
+    <!-- ============ REPORT: GATE IN/OUT ============ -->
+    <div class="view" id="view-rep-gate">
+      <h1 class="page-title">Gate In / Gate Out Report</h1>
+      <div class="page-desc mb-3">Daily gate movement register</div>
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center">
+        <select class="form-select form-select-sm" style="max-width:160px" id="gateRepType">
+          <option value="all">All Movements</option>
+          <option value="in">Gate In only</option>
+          <option value="out">Gate Out only</option>
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" onclick="renderRepGate()"><i class="fa-solid fa-filter me-1"></i>Apply</button>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="exportCSV(getGateRepRows(),'gate_in_out_report')"><i class="fa-solid fa-file-excel me-1"></i>Export</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="fa-solid fa-print me-1"></i>Print</button>
+      </div>
+      <div class="row g-3 mb-2" id="gateRepKpi"></div>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead><tr><th>Container No</th><th>Movement</th><th>Date</th><th>Time</th><th>Shipping Line</th><th>Customer</th><th>Vehicle No</th><th>Gate Ref</th></tr></thead>
+            <tbody id="gateRepBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REPORT: YARD OCCUPANCY ============ -->
+    <div class="view" id="view-rep-yard">
+      <h1 class="page-title">Yard Occupancy Report</h1>
+      <div class="page-desc mb-3">Block-wise slot utilization across ICD yard</div>
+      <div class="row g-3 mb-2" id="yardRepKpi"></div>
+      <div class="row g-3">
+        <div class="col-lg-5">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Occupancy by Block</div>
+            <canvas id="chYardRep" height="240"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="card-x p-2">
+            <div class="table-responsive">
+              <table class="table table-erp table-hover mb-0">
+                <thead><tr><th>Block</th><th>Capacity (TEU)</th><th>Occupied</th><th>Available</th><th>Utilization</th></tr></thead>
+                <tbody id="yardRepBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REPORT: AGING & DEMURRAGE ============ -->
+    <div class="view" id="view-rep-aging">
+      <h1 class="page-title">Container Aging &amp; Demurrage Report</h1>
+      <div class="page-desc mb-3">Free-time tracking and demurrage / detention exposure</div>
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center">
+        <select class="form-select form-select-sm" style="max-width:180px" id="agingBucket">
+          <option value="">All Ageing Buckets</option>
+          <option value="0-3">0–3 days (Free)</option>
+          <option value="4-7">4–7 days</option>
+          <option value="8-14">8–14 days</option>
+          <option value="15+">15+ days (Critical)</option>
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" onclick="renderRepAging()"><i class="fa-solid fa-filter me-1"></i>Apply</button>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="exportCSV(getAgingRows(),'aging_demurrage_report')"><i class="fa-solid fa-file-excel me-1"></i>Export</button>
+      </div>
+      <div class="row g-3 mb-2" id="agingKpi"></div>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead><tr><th>Container No</th><th>Customer</th><th>Gate In Date</th><th>Days in Yard</th><th>Free Days</th><th>Chargeable Days</th><th>Demurrage (TZS)</th><th>Storage (TZS)</th><th>Status</th></tr></thead>
+            <tbody id="agingBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REPORT: CUSTOMS CLEARANCE ============ -->
+    <div class="view" id="view-rep-customs">
+      <h1 class="page-title">Customs Clearance &amp; Duty Collection Report</h1>
+      <div class="page-desc mb-3">TRA duty assessment vs. collection, by declaration</div>
+      <div class="row g-3 mb-2" id="custRepKpi"></div>
+      <div class="row g-3">
+        <div class="col-lg-5">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Duty Collection by Component</div>
+            <canvas id="chCustoms" height="240"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="card-x p-2">
+            <div class="table-responsive">
+              <table class="table table-erp table-hover mb-0">
+                <thead><tr><th>Declaration No</th><th>Container</th><th>Customer</th><th>Assessed (TZS)</th><th>Paid (TZS)</th><th>Balance</th><th>Status</th></tr></thead>
+                <tbody id="custRepBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REPORT: REVENUE & BILLING ============ -->
+    <div class="view" id="view-rep-revenue">
+      <h1 class="page-title">Revenue &amp; Billing Summary</h1>
+      <div class="page-desc mb-3">ICD service revenue — handling, storage, demurrage and ancillary charges</div>
+      <div class="row g-3 mb-2" id="revKpi"></div>
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Revenue by Charge Type</div>
+            <canvas id="chRevType" height="230"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Revenue by Customer (Top 8)</div>
+            <canvas id="chRevCust" height="230"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card-x p-2 mt-3">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead><tr><th>Invoice Ref</th><th>Container</th><th>Customer</th><th>Handling</th><th>Storage</th><th>Demurrage</th><th>Total (TZS)</th><th>Status</th></tr></thead>
+            <tbody id="revBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ REPORT: INVOICE REPORT ============ -->
+    <div class="view" id="view-rep-invoice">
+      <h1 class="page-title">Invoice Report</h1>
+      <div class="page-desc mb-3">All customer invoices generated for closed jobs — issued, paid and overdue</div>
+      <div class="row g-3 mb-2" id="invRepKpi"></div>
+      <div class="row g-3 mb-3">
+        <div class="col-lg-5">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Invoices by Status</div>
+            <canvas id="chInvStatus" height="230"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="card-x p-3 h-100">
+            <div class="section-hd">Invoiced vs Collected (last 6 months)</div>
+            <canvas id="chInvTrend" height="230"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="filter-bar d-flex flex-wrap gap-2 align-items-center">
+        <select class="form-select form-select-sm" style="max-width:160px" id="invRepStatus">
+          <option value="">All Statuses</option><option>Issued</option><option>Paid</option><option>Overdue</option>
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" onclick="renderRepInvoice()"><i class="fa-solid fa-filter me-1"></i>Apply</button>
+        <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="exportCSV(getInvoiceRows(),'invoice_report')"><i class="fa-solid fa-file-excel me-1"></i>Export</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()"><i class="fa-solid fa-print me-1"></i>Print</button>
+      </div>
+      <div class="card-x p-2">
+        <div class="table-responsive">
+          <table class="table table-erp table-hover mb-0">
+            <thead><tr><th>Invoice No</th><th>Container</th><th>Customer</th><th>Invoice Date</th><th>Due Date</th><th>Subtotal</th><th>VAT</th><th>Total (TZS)</th><th>Status</th><th></th></tr></thead>
+            <tbody id="invRepBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Arrival Modal -->
+<div class="modal fade" id="arrivalModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title"><i class="fa-solid fa-ship me-2"></i>New Container Arrival</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <form id="arrivalForm">
+          <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">Container No *</label><input required class="form-control" name="containerNo" placeholder="MSCU1234567"></div>
+            <div class="col-md-4"><label class="form-label">Size</label><select class="form-select" name="size"><option>20ft</option><option>40ft</option><option>40HC</option></select></div>
+            <div class="col-md-4"><label class="form-label">Type</label><select class="form-select" name="type"><option>Dry</option><option>Reefer</option><option>Open Top</option><option>Flat Rack</option></select></div>
+            <div class="col-md-4"><label class="form-label">Shipping Line</label>
+              <select class="form-select" name="shippingLine" id="arrShippingLineSelect"></select>
+            </div>
+            <div class="col-md-4"><label class="form-label">Vessel / Voyage</label><input class="form-control" name="vessel" placeholder="MV Kiliman Jaro / V.221"></div>
+            <div class="col-md-4"><label class="form-label">B/L Number</label><input class="form-control" name="blNumber" placeholder="MEDUDR123456"></div>
+            <div class="col-md-4"><label class="form-label">Arrival Date</label><input type="date" class="form-control" name="arrivalDate"></div>
+            <div class="col-md-4"><label class="form-label">Cargo Type</label>
+              <select class="form-select" name="cargoType"><option>General Cargo</option><option>Machinery</option><option>Auto Parts</option><option>FMCG</option><option>Building Materials</option><option>Electronics</option></select>
+            </div>
+            <div class="col-md-4"><label class="form-label">Weight (kg)</label><input type="number" class="form-control" name="weightKg" value="18500"></div>
+            <div class="col-md-6"><label class="form-label">Customer</label><input class="form-control" name="customer" list="arrCustomerList" placeholder="Select or type a customer"><datalist id="arrCustomerList"></datalist></div>
+            <div class="col-md-6"><label class="form-label">CHA (Clearing Agent)</label><input class="form-control" name="cha" list="arrChaList" placeholder="Select or type a CHA"><datalist id="arrChaList"></datalist></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-accent" onclick="submitArrival()"><i class="fa-solid fa-check me-1"></i>Save Arrival</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic action modal (used for gate-in, yard, customs, delivery, gateout forms) -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="actionModalTitle">Action</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="actionModalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-accent" id="actionModalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Generic Master Record Modal -->
+<div class="modal fade" id="masterFormModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="masterFormTitle">Master Record</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body"><form id="masterForm"><div class="row g-3" id="masterFormFields"></div></form></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-danger me-auto d-none" id="masterDeleteBtn"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-accent" id="masterSaveBtn"><i class="fa-solid fa-check me-1"></i>Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Invoice View / Print Modal -->
+<div class="modal fade" id="invoiceViewModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title"><i class="fa-solid fa-file-invoice-dollar me-2"></i>Invoice</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body" id="invoiceViewBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-outline-success" id="invoiceMarkPaidBtn"><i class="fa-solid fa-circle-check me-1"></i>Mark as Paid</button>
+        <button class="btn btn-navy" id="invoicePrintBtn"><i class="fa-solid fa-print me-1"></i>Print Invoice</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap"><div id="mainToast" class="toast align-items-center text-white bg-success border-0" role="alert">
+  <div class="d-flex"><div class="toast-body" id="toastMsg">Saved.</div><button class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* =====================================================================
+   ICD Management — data layer
+===================================================================== */
+const STATUS_FLOW = ["Arrived","ICD Transfer","Gated In","Yard Allocated","Declared","Duty Assessed","Duty Paid","Inspected","Released","DO Issued","Dispatched","Delivered","Empty Returned","Gated Out","Closed"];
+const STATUS_COLOR = {
+  "Arrived":"#64748b","ICD Transfer":"#64748b","Gated In":"#2563eb","Yard Allocated":"#2563eb",
+  "Declared":"#7c3aed","Duty Assessed":"#7c3aed","Duty Paid":"#7c3aed","Inspected":"#d97706","Released":"#16a34a",
+  "DO Issued":"#0d9488","Dispatched":"#0d9488","Delivered":"#16a34a","Empty Returned":"#64748b","Gated Out":"#334155","Closed":"#0f172a"
+};
+const LINES = ["MSC","Maersk","CMA CGM","ONE","Hapag-Lloyd","Evergreen"];
+const CUSTOMERS = ["Serengeti Traders Ltd","Kilimanjaro Agro Supplies","Coastal Motors Tanzania","Bahari Building Materials","Zanzibar FMCG Distributors","Ngorongoro Machinery Co.","Ruaha Electronics Ltd","Mwanza Textiles &amp; Trading","Dodoma General Merchants","Arusha Auto Spares Ltd"].map(s=>s.replace('&amp;','&'));
+const CHAS = ["Coastal Clearing & Forwarding","Bahari CHA Services","Uhuru Freight Agents","Pwani Customs Brokers","Tanzanite Logistics CHA"];
+const YARD_BLOCKS = [
+  {block:"Block A - Dry (20ft)",capacity:120},
+  {block:"Block B - Dry (40ft)",capacity:100},
+  {block:"Block C - Reefer",capacity:40},
+  {block:"Block D - OOG/Special",capacity:25},
+];
+const CARGO_TYPES = ["General Cargo","Machinery","Auto Parts","FMCG","Building Materials","Electronics"];
+const VEHICLES = ["T 123 ABC","T 456 DEF","T 789 GHI","T 234 JKL","T 567 MNO"];
+const DRIVERS = ["Juma Hassan","Baraka Mushi","Emmanuel Kileo","Rajabu Said","Fatuma Iddi"];
+
+const DB_KEY = "icd_containers_v1";
+function loadDB(){ try{ return JSON.parse(localStorage.getItem(DB_KEY))||[]; }catch(e){ return []; } }
+function saveDB(){ localStorage.setItem(DB_KEY, JSON.stringify(DB)); }
+function uid(){ return 'C'+Math.random().toString(36).slice(2,9).toUpperCase(); }
+function fmtTZS(n){ return "TZS " + Math.round(n).toLocaleString('en-US'); }
+function todayISO(offsetDays=0){ const d=new Date(); d.setDate(d.getDate()+offsetDays); return d.toISOString().slice(0,10); }
+function daysBetween(a,b){ if(!a) return 0; const d1=new Date(a), d2=b?new Date(b):new Date(); return Math.max(0, Math.round((d2-d1)/86400000)); }
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+function seedData(){
+  const list=[];
+  const totalContainers = 34;
+  for(let i=0;i<totalContainers;i++){
+    const size = rand(["20ft","40ft","40HC"]);
+    const cargoType = rand(CARGO_TYPES);
+    const type = cargoType==="Machinery"&&Math.random()<0.2 ? "Open Top" : (Math.random()<0.1?"Reefer":"Dry");
+    const arrivalOffset = -randInt(1,26);
+    const arrivalDate = todayISO(arrivalOffset);
+    const statusIdx = Math.min(STATUS_FLOW.length-1, Math.floor((i/totalContainers)*STATUS_FLOW.length) + randInt(-1,1));
+    const status = STATUS_FLOW[Math.max(0,statusIdx)];
+    const stIndex = STATUS_FLOW.indexOf(status);
+    const c = {
+      id: uid(),
+      containerNo: rand(["MSCU","MAEU","CMAU","ONEU","HLXU","EGHU"]) + randInt(100000,999999),
+      size, type,
+      shippingLine: rand(LINES),
+      vessel: "MV " + rand(["Kilimanjaro Star","Serengeti Pride","Zanzibar Express","Bahari Queen","Mwanza Trader","Dar Voyager"]) + " / V." + randInt(200,260),
+      blNumber: rand(["MEDU","MAEU","CMDU","ONEY","HLCU"]) + randInt(100000,999999),
+      arrivalDate,
+      customer: rand(CUSTOMERS),
+      cha: rand(CHAS),
+      forwarder: rand(CHAS),
+      cargoType, commodity: cargoType,
+      packages: randInt(20,600),
+      weightKg: randInt(4000,26000),
+      status,
+      yardLocation: stIndex>=3 ? (rand(YARD_BLOCKS).block.split(' - ')[0] + '-' + randInt(1,40)) : "",
+      gateInDate: stIndex>=2 ? todayISO(arrivalOffset+randInt(1,2)) : "",
+      declarationNo: stIndex>=4 ? "TANCIS-"+randInt(100000,999999) : "",
+      declarationDate: stIndex>=4 ? todayISO(arrivalOffset+randInt(2,4)) : "",
+      assessedDuty: 0, dutyPaid: 0, paymentRef:"",
+      inspectionResult: stIndex>=7 ? rand(["Passed","Passed","Passed","Flagged"]) : "",
+      releaseDate: stIndex>=8 ? todayISO(arrivalOffset+randInt(5,9)) : "",
+      doNumber: stIndex>=9 ? "DO-"+randInt(10000,99999) : "",
+      doDate: stIndex>=9 ? todayISO(arrivalOffset+randInt(6,10)) : "",
+      vehicleNo: stIndex>=10 ? rand(VEHICLES) : "",
+      driverName: stIndex>=10 ? rand(DRIVERS) : "",
+      dispatchDate: stIndex>=10 ? todayISO(arrivalOffset+randInt(7,11)) : "",
+      deliveryDate: stIndex>=11 ? todayISO(arrivalOffset+randInt(8,12)) : "",
+      emptyReturnDate: stIndex>=12 ? todayISO(arrivalOffset+randInt(9,14)) : "",
+      gateOutDate: stIndex>=13 ? todayISO(arrivalOffset+randInt(9,15)) : "",
+      closedDate: stIndex>=14 ? todayISO(arrivalOffset+randInt(10,16)) : "",
+      remarks:""
+    };
+    // duty numbers
+    const base = c.weightKg * randInt(180,420);
+    c.assessedDuty = stIndex>=5 ? Math.round(base) : 0;
+    c.dutyPaid = stIndex>=6 ? c.assessedDuty : (stIndex===5 ? Math.round(c.assessedDuty*0.4) : 0);
+    c.paymentRef = c.dutyPaid>0 ? "PBZ-"+randInt(1000000,9999999) : "";
+    list.push(c);
+  }
+  return list;
+}
+let DB = loadDB();
+if(!DB.length){ DB = seedData(); saveDB(); }
+function resetSeed(){ if(confirm("Reset all demo data to initial seed? This clears any changes you made.")){
+  DB = seedData(); saveDB();
+  MASTERS.forEach(m=>localStorage.removeItem(masterKey(m.id)));
+  INVOICES = []; saveInvoices();
+  DB.filter(c=>c.status==="Closed").forEach(c=>{ c.invoiceNo=""; generateInvoiceForContainer(c.id); });
+  showToast("Demo data reset."); refreshCurrentView(); } }
+
+/* =====================================================================
+   MASTER DATA — config-driven registers (39 masters)
+===================================================================== */
+const COUNTRIES = ["Tanzania","Kenya","Uganda","Zambia","DR Congo","Rwanda","Burundi","Malawi","China","UAE","India","South Africa"];
+const CURRENCIES = [{code:"TZS",name:"Tanzanian Shilling",symbol:"TSh",rate:1},{code:"USD",name:"US Dollar",symbol:"$",rate:2620},
+  {code:"KES",name:"Kenyan Shilling",symbol:"KSh",rate:20.3},{code:"EUR",name:"Euro",symbol:"€",rate:2840},{code:"CNY",name:"Chinese Yuan",symbol:"¥",rate:362}];
+
+function seq(prefix,n){ return prefix+String(n).padStart(3,'0'); }
+function rid(){ return 'M'+Math.random().toString(36).slice(2,9); }
+
+const MASTERS = [
+  // ---------------- Location & Infrastructure ----------------
+  {id:"icdmaster", cat:"Location & Infrastructure", icon:"fa-warehouse", name:"ICD Master",
+    desc:"Inland Container Depot registration",
+    fields:[{key:"code",label:"ICD Code"},{key:"name",label:"ICD Name"},{key:"location",label:"Location"},
+      {key:"capacityTEU",label:"Capacity (TEU)",type:"number"},{key:"contactPerson",label:"Contact Person"},
+      {key:"phone",label:"Phone"},{key:"status",label:"Status",type:"select",options:["Active","Inactive"]}],
+    seed:()=>[
+      {code:"ICD-KWL",name:"ACME ICD",location:"ACME, Kibaha",capacityTEU:6000,contactPerson:"Godfrey Mrema",phone:"+255 754 200 100",status:"Active"},
+      {code:"ICD-DSM",name:"Dar es Salaam ICD (TICTS)",location:"Dar es Salaam Port",capacityTEU:4200,contactPerson:"Halima Juma",phone:"+255 754 200 101",status:"Active"},
+      {code:"ICD-MWZ",name:"Mwanza ICD",location:"Mwanza",capacityTEU:1500,contactPerson:"Peter Ngowi",phone:"+255 754 200 102",status:"Active"},
+      {code:"ICD-ISK",name:"Isaka ICD",location:"Isaka, Shinyanga",capacityTEU:2200,contactPerson:"Anna Massawe",phone:"+255 754 200 103",status:"Active"},
+    ]},
+  {id:"portmaster", cat:"Location & Infrastructure", icon:"fa-anchor", name:"Port Master",
+    desc:"Sea ports and dry ports network",
+    fields:[{key:"code",label:"Port Code"},{key:"name",label:"Port Name"},{key:"country",label:"Country",type:"select",options:COUNTRIES},
+      {key:"type",label:"Type",type:"select",options:["Sea Port","Dry Port","River Port"]},{key:"status",label:"Status",type:"select",options:["Active","Inactive"]}],
+    seed:()=>[
+      {code:"TZDAR",name:"Port of Dar es Salaam",country:"Tanzania",type:"Sea Port",status:"Active"},
+      {code:"TZTGA",name:"Port of Tanga",country:"Tanzania",type:"Sea Port",status:"Active"},
+      {code:"TZMTW",name:"Port of Mtwara",country:"Tanzania",type:"Sea Port",status:"Active"},
+      {code:"KEMBA",name:"Port of Mombasa",country:"Kenya",type:"Sea Port",status:"Active"},
+    ]},
+  {id:"countrymaster", cat:"Location & Infrastructure", icon:"fa-earth-africa", name:"Country Master",
+    desc:"Countries of origin, transit and destination",
+    fields:[{key:"code",label:"ISO Code"},{key:"name",label:"Country Name"},{key:"region",label:"Region"}],
+    seed:()=>[{code:"TZ",name:"Tanzania",region:"East Africa"},{code:"KE",name:"Kenya",region:"East Africa"},
+      {code:"UG",name:"Uganda",region:"East Africa"},{code:"ZM",name:"Zambia",region:"Southern Africa"},
+      {code:"CD",name:"DR Congo",region:"Central Africa"},{code:"CN",name:"China",region:"Asia"},{code:"AE",name:"UAE",region:"Middle East"}]},
+  {id:"customsoffice", cat:"Location & Infrastructure", icon:"fa-landmark", name:"Customs Office Master",
+    desc:"TRA customs office / station registration",
+    fields:[{key:"code",label:"Office Code"},{key:"name",label:"Office Name"},{key:"location",label:"Location"},{key:"jurisdiction",label:"Jurisdiction"}],
+    seed:()=>[{code:"TRA-DSM01",name:"Dar es Salaam Long Room",location:"Dar es Salaam",jurisdiction:"Import/Export"},
+      {code:"TRA-KWL01",name:"ACME ICD Customs Station",location:"ACME",jurisdiction:"ICD Clearance"},
+      {code:"TRA-ISK01",name:"Isaka Customs Station",location:"Isaka",jurisdiction:"Transit/ICD"}]},
+  {id:"warehousemaster", cat:"Location & Infrastructure", icon:"fa-boxes-packing", name:"Warehouse Master",
+    desc:"Bonded and general warehouse registry",
+    fields:[{key:"code",label:"Warehouse Code"},{key:"name",label:"Warehouse Name"},{key:"location",label:"Location"},
+      {key:"capacitySqm",label:"Capacity (sqm)",type:"number"},{key:"type",label:"Type",type:"select",options:["Bonded","General","Cold Storage"]}],
+    seed:()=>[{code:"WH-01",name:"ACME Bonded Warehouse A",location:"ACME ICD",capacitySqm:8000,type:"Bonded"},
+      {code:"WH-02",name:"Dar General Warehouse",location:"Dar ICD",capacitySqm:5000,type:"General"},
+      {code:"WH-03",name:"Cold Chain Facility",location:"ACME ICD",capacitySqm:1200,type:"Cold Storage"}]},
+  {id:"yardmaster", cat:"Location & Infrastructure", icon:"fa-square-parking", name:"Yard Master",
+    desc:"Container yard registration per ICD",
+    fields:[{key:"code",label:"Yard Code"},{key:"icd",label:"ICD"},{key:"capacityTEU",label:"Capacity (TEU)",type:"number"},{key:"status",label:"Status",type:"select",options:["Active","Inactive"]}],
+    seed:()=>[{code:"YD-KWL-1",icd:"ACME ICD",capacityTEU:3000,status:"Active"},{code:"YD-KWL-2",icd:"ACME ICD",capacityTEU:1800,status:"Active"},
+      {code:"YD-DSM-1",icd:"Dar es Salaam ICD",capacityTEU:2200,status:"Active"}]},
+  {id:"yardlocation", cat:"Location & Infrastructure", icon:"fa-map-location-dot", name:"Yard Location Master",
+    desc:"Block-level yard location definitions",
+    fields:[{key:"block",label:"Block Code"},{key:"description",label:"Description"},{key:"slotRange",label:"Slot Range"},{key:"type",label:"Type",type:"select",options:["Dry 20ft","Dry 40ft","Reefer","OOG/Special"]}],
+    seed:()=>[{block:"Block A",description:"Dry 20ft standard",slotRange:"1-120",type:"Dry 20ft"},
+      {block:"Block B",description:"Dry 40ft standard",slotRange:"1-100",type:"Dry 40ft"},
+      {block:"Block C",description:"Reefer plug-in bay",slotRange:"1-40",type:"Reefer"},
+      {block:"Block D",description:"Out-of-gauge / special cargo",slotRange:"1-25",type:"OOG/Special"}]},
+  {id:"containerslot", cat:"Location & Infrastructure", icon:"fa-th", name:"Container Slot Master",
+    desc:"Individual slot occupancy register",
+    fields:[{key:"slotNo",label:"Slot No"},{key:"block",label:"Block"},{key:"status",label:"Status",type:"select",options:["Empty","Occupied","Reserved"]},{key:"containerNo",label:"Container No (if occupied)"}],
+    seed:()=>{ const rows=[]; ["A","B","C","D"].forEach(b=>{ for(let i=1;i<=6;i++){ rows.push({slotNo:b+'-'+i,block:'Block '+b,status: i%3===0?'Empty':'Occupied', containerNo: i%3===0?'':rand(["MSCU","MAEU","CMAU"])+randInt(100000,999999)}); } }); return rows; }},
+
+  // ---------------- Container & Cargo ----------------
+  {id:"containertype", cat:"Container & Cargo", icon:"fa-cube", name:"Container Type Master",
+    desc:"Standard ISO container type codes",
+    fields:[{key:"code",label:"Type Code"},{key:"name",label:"Type Name"},{key:"description",label:"Description"}],
+    seed:()=>[{code:"DRY",name:"Dry Van",description:"General purpose dry container"},{code:"REEF",name:"Reefer",description:"Temperature-controlled container"},
+      {code:"OT",name:"Open Top",description:"For over-height cargo"},{code:"FR",name:"Flat Rack",description:"For oversized/heavy cargo"},{code:"TANK",name:"Tank",description:"For liquid bulk cargo"}]},
+  {id:"containersize", cat:"Container & Cargo", icon:"fa-ruler-combined", name:"Container Size Master",
+    desc:"Container size / TEU factor reference",
+    fields:[{key:"code",label:"Size Code"},{key:"sizeFt",label:"Size (ft)"},{key:"teuFactor",label:"TEU Factor",type:"number"}],
+    seed:()=>[{code:"20",sizeFt:"20ft",teuFactor:1},{code:"40",sizeFt:"40ft",teuFactor:2},{code:"40HC",sizeFt:"40ft High Cube",teuFactor:2},{code:"45",sizeFt:"45ft High Cube",teuFactor:2.25}]},
+  {id:"cargotype", cat:"Container & Cargo", icon:"fa-pallet", name:"Cargo Type Master",
+    desc:"Broad cargo classification",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Cargo Type"},{key:"hsCategory",label:"HS Category"}],
+    seed:()=>CARGO_TYPES.map((c,i)=>({code:"CT-0"+(i+1),name:c,hsCategory: rand(["Ch.84 Machinery","Ch.87 Vehicles/Parts","Ch.72 Iron & Steel","Ch.85 Electronics","Ch.19 Foodstuffs"])}))},
+  {id:"commodity", cat:"Container & Cargo", icon:"fa-boxes-stacked", name:"Commodity Master",
+    desc:"Detailed commodity / HS code register",
+    fields:[{key:"code",label:"HS Code"},{key:"name",label:"Commodity"},{key:"cargoType",label:"Cargo Type",type:"select",options:CARGO_TYPES},{key:"dutyRate",label:"Duty Rate (%)",type:"number"}],
+    seed:()=>[{code:"8703.23",name:"Motor Vehicles (petrol, 1500-3000cc)",cargoType:"Auto Parts",dutyRate:25},
+      {code:"8708.99",name:"Vehicle Parts & Accessories",cargoType:"Auto Parts",dutyRate:25},
+      {code:"8471.30",name:"Portable Computers",cargoType:"Electronics",dutyRate:0},
+      {code:"7308.90",name:"Structures of Iron/Steel",cargoType:"Building Materials",dutyRate:10},
+      {code:"8433.11",name:"Agricultural Machinery",cargoType:"Machinery",dutyRate:0}]},
+  {id:"packagetype", cat:"Container & Cargo", icon:"fa-box", name:"Package Type Master",
+    desc:"Packaging unit reference",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Package Type"}],
+    seed:()=>[{code:"PLT",name:"Pallet"},{code:"CTN",name:"Carton"},{code:"DRM",name:"Drum"},{code:"BAG",name:"Bag"},{code:"CRT",name:"Crate"},{code:"BDL",name:"Bundle"}]},
+
+  // ---------------- Business Partners ----------------
+  {id:"shippingline", cat:"Business Partners", icon:"fa-ship", name:"Shipping Line Master",
+    desc:"Carrier / shipping line registry",
+    fields:[{key:"code",label:"Line Code"},{key:"name",label:"Shipping Line"},{key:"country",label:"Country",type:"select",options:COUNTRIES},{key:"contactEmail",label:"Contact Email"},{key:"phone",label:"Phone"}],
+    seed:()=>LINES.map((l,i)=>({code:"SL-0"+(i+1),name:l,country: l==="MSC"?"Switzerland":l==="Maersk"?"Denmark":l==="CMA CGM"?"France":l==="ONE"?"Japan":l==="Evergreen"?"Taiwan":"Germany",
+      contactEmail: l.toLowerCase().replace(/\s/g,'')+"@agencydsm.co.tz", phone:"+255 754 3"+randInt(10,99)+" "+randInt(100,999)}))},
+  {id:"customermaster", cat:"Business Partners", icon:"fa-building", name:"Customer Master",
+    desc:"Importer / consignee customer accounts",
+    fields:[{key:"code",label:"Customer Code"},{key:"name",label:"Customer Name"},{key:"tinNo",label:"TIN No"},{key:"phone",label:"Phone"},
+      {key:"address",label:"Address"},{key:"category",label:"Category",type:"select",options:["Corporate","SME","Individual"]}],
+    seed:()=>CUSTOMERS.map((c,i)=>({code:"CUS-0"+(i+1),name:c,tinNo:"1"+randInt(10000000,99999999),phone:"+255 75"+randInt(1000000,9999999),
+      address:rand(["Dar es Salaam","Arusha","Mwanza","Mbeya","Dodoma"])+", Tanzania",category:rand(["Corporate","Corporate","SME"])}))},
+  {id:"consignee", cat:"Business Partners", icon:"fa-user-tie", name:"Consignee Master",
+    desc:"Cargo receiving party register",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Consignee Name"},{key:"country",label:"Country",type:"select",options:COUNTRIES},{key:"phone",label:"Phone"}],
+    seed:()=>CUSTOMERS.slice(0,6).map((c,i)=>({code:"CNE-0"+(i+1),name:c,country:"Tanzania",phone:"+255 75"+randInt(1000000,9999999)}))},
+  {id:"consignor", cat:"Business Partners", icon:"fa-user", name:"Consignor Master",
+    desc:"Cargo shipping / sending party register",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Consignor Name"},{key:"country",label:"Country",type:"select",options:COUNTRIES},{key:"phone",label:"Phone"}],
+    seed:()=>[{code:"CNR-01",name:"Guangzhou Auto Parts Export Co.",country:"China",phone:"+86 20 8"+randInt(1000000,9999999)},
+      {code:"CNR-02",name:"Dubai Trading FZE",country:"UAE",phone:"+971 4 "+randInt(1000000,9999999)},
+      {code:"CNR-03",name:"Mumbai Machinery Exports Pvt Ltd",country:"India",phone:"+91 22 "+randInt(10000000,99999999)}]},
+  {id:"chamaster", cat:"Business Partners", icon:"fa-user-shield", name:"CHA Master",
+    desc:"Clearing & Forwarding Agent licensing",
+    fields:[{key:"code",label:"CHA Code"},{key:"name",label:"CHA Name"},{key:"licenseNo",label:"TRA License No"},{key:"phone",label:"Phone"},{key:"status",label:"Status",type:"select",options:["Active","Suspended"]}],
+    seed:()=>CHAS.map((c,i)=>({code:"CHA-0"+(i+1),name:c,licenseNo:"CHA/LIC/"+randInt(1000,9999),phone:"+255 75"+randInt(1000000,9999999),status:"Active"}))},
+  {id:"forwarder", cat:"Business Partners", icon:"fa-globe", name:"Forwarder Master",
+    desc:"International freight forwarder register",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Forwarder Name"},{key:"country",label:"Country",type:"select",options:COUNTRIES},{key:"phone",label:"Phone"}],
+    seed:()=>[{code:"FWD-01",name:"Pwani Global Forwarding Ltd",country:"Tanzania",phone:"+255 75"+randInt(1000000,9999999)},
+      {code:"FWD-02",name:"Coastal International Freight",country:"Tanzania",phone:"+255 75"+randInt(1000000,9999999)},
+      {code:"FWD-03",name:"East Africa Cargo Partners",country:"Kenya",phone:"+254 72"+randInt(1000000,9999999)}]},
+  {id:"freightagent", cat:"Business Partners", icon:"fa-handshake", name:"Freight Agent Master",
+    desc:"Local freight booking agent register",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Agent Name"},{key:"phone",label:"Phone"}],
+    seed:()=>[{code:"FA-01",name:"Bahari Freight Services",phone:"+255 75"+randInt(1000000,9999999)},
+      {code:"FA-02",name:"Uhuru Cargo Agents",phone:"+255 75"+randInt(1000000,9999999)}]},
+  {id:"portagent", cat:"Business Partners", icon:"fa-user-tie", name:"Port Agent Master",
+    desc:"Shipping line's local port agent representation",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Agent Name"},{key:"port",label:"Port"},{key:"phone",label:"Phone"}],
+    seed:()=>[{code:"PA-01",name:"MSC Tanzania Agencies Ltd",port:"Port of Dar es Salaam",phone:"+255 75"+randInt(1000000,9999999)},
+      {code:"PA-02",name:"Maersk Tanzania Ltd",port:"Port of Dar es Salaam",phone:"+255 75"+randInt(1000000,9999999)}]},
+  {id:"counterpart", cat:"Business Partners", icon:"fa-people-arrows", name:"Counterpart Agent Master",
+    desc:"Overseas counterpart agent network",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Agent Name"},{key:"country",label:"Country",type:"select",options:COUNTRIES},{key:"phone",label:"Phone"}],
+    seed:()=>[{code:"CPA-01",name:"Guangzhou Logistics Partners",country:"China",phone:"+86 20 "+randInt(10000000,99999999)},
+      {code:"CPA-02",name:"Nairobi Corridor Agents",country:"Kenya",phone:"+254 72"+randInt(1000000,9999999)}]},
+
+  // ---------------- Transport ----------------
+  {id:"vehiclemaster", cat:"Transport", icon:"fa-truck", name:"Vehicle Master",
+    desc:"Prime mover / trailer fleet register",
+    fields:[{key:"regNo",label:"Registration No"},{key:"type",label:"Type",type:"select",options:["Flatbed Trailer","Low Bed","Tanker","Box Truck"]},
+      {key:"capacityTon",label:"Capacity (Tons)",type:"number"},{key:"transporter",label:"Transporter"},{key:"status",label:"Status",type:"select",options:["Active","In Maintenance"]}],
+    seed:()=>VEHICLES.map((v,i)=>({regNo:v,type:rand(["Flatbed Trailer","Low Bed","Box Truck"]),capacityTon:randInt(20,40),transporter:rand(["RSA Transport Ltd","Coastal Haulage","Kilimanjaro Logistics"]),status:"Active"}))},
+  {id:"transporter", cat:"Transport", icon:"fa-truck-field", name:"Transporter Master",
+    desc:"Third-party haulage contractor register",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Transporter Name"},{key:"contactPerson",label:"Contact Person"},{key:"phone",label:"Phone"},{key:"fleetSize",label:"Fleet Size",type:"number"}],
+    seed:()=>[{code:"TRN-01",name:"RSA Transport Ltd",contactPerson:"Hassan Mbwana",phone:"+255 75"+randInt(1000000,9999999),fleetSize:45},
+      {code:"TRN-02",name:"Coastal Haulage Co.",contactPerson:"Neema Kessy",phone:"+255 75"+randInt(1000000,9999999),fleetSize:28},
+      {code:"TRN-03",name:"Kilimanjaro Logistics",contactPerson:"Daniel Mollel",phone:"+255 75"+randInt(1000000,9999999),fleetSize:33}]},
+  {id:"drivermaster", cat:"Transport", icon:"fa-id-card", name:"Driver Master",
+    desc:"Licensed driver register",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Driver Name"},{key:"licenseNo",label:"License No"},{key:"phone",label:"Phone"},{key:"status",label:"Status",type:"select",options:["Active","Inactive"]}],
+    seed:()=>DRIVERS.map((d,i)=>({code:"DRV-0"+(i+1),name:d,licenseNo:"DL-TZ-"+randInt(100000,999999),phone:"+255 75"+randInt(1000000,9999999),status:"Active"}))},
+
+  // ---------------- Financial ----------------
+  {id:"currencymaster", cat:"Financial", icon:"fa-coins", name:"Currency Master",
+    desc:"Currency exchange rate reference (vs TZS)",
+    fields:[{key:"code",label:"Currency Code"},{key:"name",label:"Currency Name"},{key:"symbol",label:"Symbol"},{key:"rate",label:"Rate (per unit, TZS)",type:"number"}],
+    seed:()=>CURRENCIES},
+  {id:"taxmaster", cat:"Financial", icon:"fa-percent", name:"Tax Master",
+    desc:"EAC / national tax component reference",
+    fields:[{key:"code",label:"Tax Code"},{key:"name",label:"Tax Name"},{key:"rate",label:"Rate (%)",type:"number"},{key:"type",label:"Type",type:"select",options:["Import Duty","VAT","Excise","Levy"]}],
+    seed:()=>[{code:"ID",name:"Import Duty",rate:25,type:"Import Duty"},{code:"VAT",name:"Value Added Tax",rate:18,type:"VAT"},
+      {code:"EXC",name:"Excise Duty",rate:5,type:"Excise"},{code:"RDL",name:"Railway Development Levy",rate:1.5,type:"Levy"}]},
+  {id:"chargemaster", cat:"Financial", icon:"fa-file-invoice", name:"Charge Master",
+    desc:"ICD service charge rate card",
+    fields:[{key:"code",label:"Charge Code"},{key:"name",label:"Charge Name"},{key:"unit",label:"Unit"},{key:"rate",label:"Rate (TZS)",type:"number"}],
+    seed:()=>[{code:"CHG-01",name:"Handling Charge - 20ft",unit:"per container",rate:180000},
+      {code:"CHG-02",name:"Handling Charge - 40ft/HC",unit:"per container",rate:280000},
+      {code:"CHG-03",name:"Storage Charge",unit:"per day",rate:12000},
+      {code:"CHG-04",name:"Demurrage Charge",unit:"per day (after free time)",rate:45000},
+      {code:"CHG-05",name:"Reefer Plug-in Charge",unit:"per day",rate:25000}]},
+  {id:"tariffmaster", cat:"Financial", icon:"fa-scale-balanced", name:"Tariff Master",
+    desc:"Commodity-wise duty/VAT tariff schedule",
+    fields:[{key:"code",label:"Tariff Code"},{key:"commodity",label:"Commodity"},{key:"dutyRate",label:"Duty Rate (%)",type:"number"},{key:"vatRate",label:"VAT Rate (%)",type:"number"}],
+    seed:()=>[{code:"TF-01",commodity:"Motor Vehicles",dutyRate:25,vatRate:18},{code:"TF-02",commodity:"Vehicle Parts",dutyRate:25,vatRate:18},
+      {code:"TF-03",commodity:"Agricultural Machinery",dutyRate:0,vatRate:18},{code:"TF-04",commodity:"Computers/Electronics",dutyRate:0,vatRate:18}]},
+  {id:"servicemaster", cat:"Financial", icon:"fa-concierge-bell", name:"Service Master",
+    desc:"Value-added service catalogue",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Service Name"},{key:"category",label:"Category",type:"select",options:["Handling","Documentation","Transport","Storage"]},{key:"rate",label:"Rate (TZS)",type:"number"}],
+    seed:()=>[{code:"SVC-01",name:"Container Stuffing",category:"Handling",rate:150000},{code:"SVC-02",name:"Container Destuffing",category:"Handling",rate:150000},
+      {code:"SVC-03",name:"Documentation Processing",category:"Documentation",rate:60000},{code:"SVC-04",name:"Last-Mile Transport",category:"Transport",rate:450000}]},
+
+  // ---------------- System & Workflow ----------------
+  {id:"reasoncodes", cat:"System & Workflow", icon:"fa-list-check", name:"Reason Codes",
+    desc:"Standard reason codes for holds, damages, exceptions",
+    fields:[{key:"code",label:"Code"},{key:"description",label:"Description"},{key:"category",label:"Category",type:"select",options:["Hold","Damage","Delay","Exception"]}],
+    seed:()=>[{code:"RC-01",description:"Awaiting customer documents",category:"Delay"},{code:"RC-02",description:"Container seal broken",category:"Damage"},
+      {code:"RC-03",description:"TRA verification hold",category:"Hold"},{code:"RC-04",description:"Incomplete declaration",category:"Exception"}]},
+  {id:"holidaycalendar", cat:"System & Workflow", icon:"fa-calendar-days", name:"Holiday Calendar",
+    desc:"Public holidays affecting customs/port operations",
+    fields:[{key:"date",label:"Date",type:"date"},{key:"name",label:"Holiday Name"},{key:"type",label:"Type",type:"select",options:["National","Religious"]}],
+    seed:()=>[{date:"2026-12-09",name:"Independence Day",type:"National"},{date:"2026-04-26",name:"Union Day",type:"National"},
+      {date:"2026-05-01",name:"Labour Day",type:"National"},{date:"2026-12-25",name:"Christmas Day",type:"Religious"}]},
+  {id:"usermaster", cat:"System & Workflow", icon:"fa-user-gear", name:"User Master",
+    desc:"System user accounts",
+    fields:[{key:"username",label:"Username"},{key:"fullName",label:"Full Name"},{key:"role",label:"Role"},{key:"status",label:"Status",type:"select",options:["Active","Disabled"]}],
+    seed:()=>[{username:"m.chaturvedi",fullName:"Manoj Lodhia",role:"Administrator",status:"Active"},{username:"h.juma",fullName:"Halima Juma",role:"Operations Manager",status:"Active"},
+      {username:"g.mrema",fullName:"Godfrey Mrema",role:"ICD Supervisor",status:"Active"},{username:"a.massawe",fullName:"Anna Massawe",role:"Customs Officer",status:"Active"}]},
+  {id:"rolemaster", cat:"System & Workflow", icon:"fa-user-shield", name:"Role Master",
+    desc:"Security roles and access levels",
+    fields:[{key:"code",label:"Role Code"},{key:"name",label:"Role Name"},{key:"permissionLevel",label:"Permission Level",type:"select",options:["Full Access","Transaction Only","View Only"]}],
+    seed:()=>[{code:"ADM",name:"Administrator",permissionLevel:"Full Access"},{code:"OPM",name:"Operations Manager",permissionLevel:"Transaction Only"},
+      {code:"CUS",name:"Customs Officer",permissionLevel:"Transaction Only"},{code:"FIN",name:"Finance Officer",permissionLevel:"Transaction Only"},
+      {code:"MGT",name:"Management",permissionLevel:"View Only"}]},
+  {id:"approvalmatrix", cat:"System & Workflow", icon:"fa-sitemap", name:"Approval Matrix",
+    desc:"Financial approval limits by role",
+    fields:[{key:"role",label:"Role"},{key:"transactionType",label:"Transaction Type"},{key:"approvalLimit",label:"Approval Limit (TZS)",type:"number"}],
+    seed:()=>[{role:"Operations Manager",transactionType:"Delivery Order",approvalLimit:5000000},{role:"Finance Officer",transactionType:"Duty Payment",approvalLimit:20000000},
+      {role:"Management",transactionType:"Credit Note",approvalLimit:100000000}]},
+  {id:"documentmaster", cat:"System & Workflow", icon:"fa-file-lines", name:"Document Master",
+    desc:"Mandatory document checklist per job type",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Document Name"},{key:"mandatory",label:"Mandatory",type:"select",options:["Yes","No"]}],
+    seed:()=>[{code:"DOC-01",name:"Bill of Lading",mandatory:"Yes"},{code:"DOC-02",name:"Commercial Invoice",mandatory:"Yes"},
+      {code:"DOC-03",name:"Packing List",mandatory:"Yes"},{code:"DOC-04",name:"Certificate of Origin",mandatory:"No"},{code:"DOC-05",name:"TANCIS Declaration",mandatory:"Yes"}]},
+  {id:"attachtype", cat:"System & Workflow", icon:"fa-paperclip", name:"Attachment Type Master",
+    desc:"Allowed attachment categories and formats",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Attachment Type"},{key:"allowedFormats",label:"Allowed Formats"}],
+    seed:()=>[{code:"ATT-01",name:"Container Photograph",allowedFormats:"JPG, PNG"},{code:"ATT-02",name:"Scanned Document",allowedFormats:"PDF"},{code:"ATT-03",name:"Damage Report",allowedFormats:"PDF, JPG"}]},
+  {id:"emailtemplate", cat:"System & Workflow", icon:"fa-envelope", name:"Email Template Master",
+    desc:"Standard notification email templates",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Template Name"},{key:"subject",label:"Subject Line"}],
+    seed:()=>[{code:"ET-01",name:"Container Arrival Notice",subject:"Your container has arrived at ICD"},
+      {code:"ET-02",name:"Duty Payment Reminder",subject:"Action required: Duty payment pending"},
+      {code:"ET-03",name:"Delivery Order Ready",subject:"Delivery Order issued for your container"}]},
+  {id:"smstemplate", cat:"System & Workflow", icon:"fa-comment-sms", name:"SMS Template Master",
+    desc:"Standard notification SMS templates",
+    fields:[{key:"code",label:"Code"},{key:"name",label:"Template Name"},{key:"template",label:"Message Template"}],
+    seed:()=>[{code:"ST-01",name:"Gate In Alert",template:"Container {container} gated in at {icd} on {date}."},
+      {code:"ST-02",name:"Gate Out Alert",template:"Container {container} has gated out. Job complete."}]},
+  {id:"notificationrules", cat:"System & Workflow", icon:"fa-bell", name:"Notification Rules",
+    desc:"Event-to-channel-to-recipient routing rules",
+    fields:[{key:"event",label:"Event"},{key:"channel",label:"Channel",type:"select",options:["Email","SMS","Push","Email + SMS"]},{key:"recipientRole",label:"Recipient Role"}],
+    seed:()=>[{event:"Container Arrival",channel:"Email + SMS",recipientRole:"Customer"},{event:"Duty Pending 3 Days",channel:"Email",recipientRole:"CHA"},
+      {event:"Gate Out Completed",channel:"SMS",recipientRole:"Customer"},{event:"Container Damage Logged",channel:"Push",recipientRole:"Operations Manager"}]},
+];
+
+function masterKey(id){ return "icd_master_"+id; }
+function loadMasterRows(m){
+  let rows = JSON.parse(localStorage.getItem(masterKey(m.id))||"null");
+  if(!rows){ rows = m.seed().map(r=>({_id:rid(), ...r})); localStorage.setItem(masterKey(m.id), JSON.stringify(rows)); }
+  return rows;
+}
+function saveMasterRows(id, rows){ localStorage.setItem(masterKey(id), JSON.stringify(rows)); }
+function getMaster(id){ return MASTERS.find(m=>m.id===id); }
+
+let activeMasterId = MASTERS[0].id;
+function renderMastersView(){
+  const cats = [...new Set(MASTERS.map(m=>m.cat))];
+  const q = (document.getElementById('masterNavSearch').value||'').toLowerCase();
+  document.getElementById('masterNavPanel').innerHTML = cats.map(cat=>{
+    const items = MASTERS.filter(m=>m.cat===cat && (!q || m.name.toLowerCase().includes(q)));
+    if(!items.length) return '';
+    return `<div class="mb-2">
+      <div class="small-muted fw-bold text-uppercase px-2 py-1" style="font-size:.68rem;letter-spacing:.5px;">${cat}</div>
+      ${items.map(m=>`<a href="#" class="side-link master-nav-link ${m.id===activeMasterId?'active':''}" style="color:#334155;border-left-color:${m.id===activeMasterId?'var(--accent)':'transparent'};padding:8px 14px;font-size:.82rem;"
+        data-master="${m.id}"><i class="fa-solid ${m.icon}" style="color:${m.id===activeMasterId?'var(--accent)':'#94a3b8'}"></i> ${m.name}</a>`).join('')}
+    </div>`;
+  }).join('') || '<div class="p-3 text-muted small">No masters match your search.</div>';
+
+  document.querySelectorAll('.master-nav-link').forEach(a=>a.addEventListener('click', e=>{
+    e.preventDefault(); activeMasterId = a.dataset.master; renderMastersView();
+  }));
+  renderMasterGrid();
+}
+document.getElementById('masterNavSearch').addEventListener('input', renderMastersView);
+
+function renderMasterGrid(){
+  const m = getMaster(activeMasterId);
+  document.getElementById('activeMasterTitle').textContent = m.name;
+  document.getElementById('activeMasterDesc').textContent = m.desc;
+  const rows = loadMasterRows(m);
+  const q = (document.getElementById('masterRowSearch').value||'').toLowerCase();
+  const filtered = q ? rows.filter(r=>m.fields.some(f=>(''+(r[f.key]??'')).toLowerCase().includes(q))) : rows;
+
+  document.getElementById('masterTableHead').innerHTML = '<tr>'+m.fields.map(f=>`<th>${f.label}</th>`).join('')+'<th style="width:90px">Action</th></tr>';
+  document.getElementById('masterTableBody').innerHTML = filtered.map(r=>`<tr>${m.fields.map(f=>`<td>${formatMasterCell(r[f.key],f)}</td>`).join('')}
+    <td><button class="btn btn-sm btn-outline-secondary" onclick="openMasterForm('${m.id}','${r._id}')"><i class="fa-solid fa-pen"></i></button></td></tr>`).join('')
+    || `<tr><td colspan="${m.fields.length+1}" class="text-center text-muted py-3">No records found.</td></tr>`;
+  document.getElementById('masterRowCount').textContent = `${filtered.length} of ${rows.length} record(s)`;
+
+  document.getElementById('masterRowSearch').oninput = renderMasterGrid;
+  document.getElementById('masterAddBtn').onclick = ()=>openMasterForm(m.id, null);
+  document.getElementById('masterExportBtn').onclick = ()=>exportCSV(rows.map(r=>{ const o={}; m.fields.forEach(f=>o[f.label]=r[f.key]); return o; }), m.id+'_export');
+}
+function formatMasterCell(val, field){
+  if(val===undefined||val===null||val==='') return '<span class="text-muted">—</span>';
+  if(field.key==='status'){ const ok = val==='Active'; return `<span class="badge-status" style="background:${ok?'#dcfce7':'#fee2e2'};color:${ok?'#166534':'#991b1b'}">${val}</span>`; }
+  if(typeof val==='number' && (field.key.toLowerCase().includes('rate') && !field.key.toLowerCase().includes('capacity'))) return val;
+  return val;
+}
+function openMasterForm(masterId, rowId){
+  const m = getMaster(masterId);
+  const rows = loadMasterRows(m);
+  const row = rowId ? rows.find(r=>r._id===rowId) : null;
+  document.getElementById('masterFormTitle').innerHTML = `<i class="fa-solid ${m.icon} me-2"></i>${row?'Edit':'New'} — ${m.name}`;
+  document.getElementById('masterFormFields').innerHTML = m.fields.map(f=>{
+    const val = row ? (row[f.key]??'') : '';
+    const colClass = m.fields.length>4 ? 'col-md-6' : 'col-md-12';
+    if(f.type==='select'){
+      return `<div class="${colClass}"><label class="form-label">${f.label}</label>
+        <select class="form-select" data-key="${f.key}">${f.options.map(o=>`<option ${o===val?'selected':''}>${o}</option>`).join('')}</select></div>`;
+    }
+    return `<div class="${colClass}"><label class="form-label">${f.label}</label>
+      <input class="form-control" data-key="${f.key}" type="${f.type==='number'?'number':f.type==='date'?'date':'text'}" value="${val}"></div>`;
+  }).join('');
+  document.getElementById('masterDeleteBtn').classList.toggle('d-none', !row);
+  document.getElementById('masterDeleteBtn').onclick = ()=>{
+    if(confirm('Delete this record?')){
+      const idx = rows.findIndex(r=>r._id===rowId); rows.splice(idx,1); saveMasterRows(masterId, rows);
+      bootstrap.Modal.getInstance(document.getElementById('masterFormModal')).hide();
+      showToast('Record deleted.'); renderMasterGrid();
+    }
+  };
+  document.getElementById('masterSaveBtn').onclick = ()=>{
+    const data = {}; document.querySelectorAll('#masterFormFields [data-key]').forEach(el=>data[el.dataset.key]=el.value);
+    if(row){ Object.assign(row, data); } else { rows.unshift({_id:rid(), ...data}); }
+    saveMasterRows(masterId, rows);
+    bootstrap.Modal.getInstance(document.getElementById('masterFormModal')).hide();
+    showToast(row?'Record updated.':'Record added.'); renderMasterGrid();
+  };
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('masterFormModal')).show();
+}
+
+function daysInYard(c){ return c.gateInDate ? daysBetween(c.gateInDate, c.gateOutDate||null) : 0; }
+function freeDays(){ return 4; }
+function demurrageRate(){ return 45000; } // TZS per day per container beyond free time
+function storageRatePerDay(){ return 12000; }
+
+/* =====================================================================
+   INVOICE & BILLING ENGINE
+===================================================================== */
+const INV_KEY = "icd_invoices_v1";
+function loadInvoices(){ try{ return JSON.parse(localStorage.getItem(INV_KEY))||[]; }catch(e){ return []; } }
+function saveInvoices(){ localStorage.setItem(INV_KEY, JSON.stringify(INVOICES)); }
+let INVOICES = loadInvoices();
+
+function nextInvoiceNo(){
+  const yr = new Date().getFullYear();
+  return "INV-"+yr+"-"+String(INVOICES.length+1).padStart(4,'0');
+}
+function buildInvoiceItems(c){
+  const days = daysInYard(c);
+  const handlingRate = (c.size==="40ft"||c.size==="40HC") ? 280000 : 180000;
+  const items = [{desc:`Container Handling Charge — ${c.size} ${c.type}`, qty:1, unit:"container", rate:handlingRate, amount:handlingRate}];
+  if(days>0){ items.push({desc:"Yard Storage Charge", qty:days, unit:"day", rate:storageRatePerDay(), amount:days*storageRatePerDay()}); }
+  const chargeableDays = Math.max(0, days-freeDays());
+  if(chargeableDays>0){ items.push({desc:`Demurrage Charge (beyond ${freeDays()} free days)`, qty:chargeableDays, unit:"day", rate:demurrageRate(), amount:chargeableDays*demurrageRate()}); }
+  return items;
+}
+function generateInvoiceForContainer(id){
+  const c = DB.find(x=>x.id===id); if(!c) return null;
+  const items = buildInvoiceItems(c);
+  const subtotal = items.reduce((s,i)=>s+i.amount,0);
+  const vat = Math.round(subtotal*0.18);
+  const total = subtotal+vat;
+  const inv = {
+    id: rid(), invoiceNo: nextInvoiceNo(), containerId: c.id, containerNo: c.containerNo, customer: c.customer,
+    date: todayISO(), dueDate: todayISO(14), items, subtotal, vat, total, status: "Issued", paymentDate:"", paymentRef:""
+  };
+  INVOICES.unshift(inv); saveInvoices();
+  c.invoiceNo = inv.invoiceNo; saveDB();
+  return inv;
+}
+function invoiceComputedStatus(inv){
+  if(inv.status==="Paid") return "Paid";
+  if(todayISO() > inv.dueDate) return "Overdue";
+  return "Issued";
+}
+function invoiceStatusColor(st){ return st==="Paid" ? "#16a34a" : st==="Overdue" ? "#dc2626" : "#2563eb"; }
+function getInvoiceRows(){
+  return INVOICES.map(inv=>({InvoiceNo:inv.invoiceNo, Container:inv.containerNo, Customer:inv.customer, Date:inv.date, DueDate:inv.dueDate,
+    Subtotal:inv.subtotal, VAT:inv.vat, Total:inv.total, Status:invoiceComputedStatus(inv)}));
+}
+
+let invoiceTab = 'generate';
+document.getElementById('invoiceTabs').addEventListener('click', e=>{
+  const a = e.target.closest('a'); if(!a) return; e.preventDefault();
+  document.querySelectorAll('#invoiceTabs a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
+  invoiceTab = a.dataset.itab;
+  document.getElementById('invoiceGenerateWrap').style.display = invoiceTab==='generate' ? '' : 'none';
+  document.getElementById('invoiceRegisterWrap').style.display = invoiceTab==='register' ? '' : 'none';
+  renderInvoice();
+});
+function renderInvoice(){
+  if(invoiceTab==='generate') renderInvoiceGenerate(); else renderInvoiceRegister();
+}
+function renderInvoiceGenerate(){
+  const rows = DB.filter(c=>c.status==="Closed" && !c.invoiceNo);
+  document.getElementById('invoiceGenerateBody').innerHTML = rows.map(c=>{
+    const items = buildInvoiceItems(c); const subtotal = items.reduce((s,i)=>s+i.amount,0); const total = Math.round(subtotal*1.18);
+    return `<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.closedDate}</td><td>${daysInYard(c)}</td><td>${fmtTZS(total)}</td>
+    <td><button class="btn btn-sm btn-accent" onclick="doGenerateInvoice('${c.id}')"><i class="fa-solid fa-file-invoice-dollar me-1"></i>Generate Invoice</button></td></tr>`;
+  }).join('') || `<tr><td colspan="6" class="text-center text-muted py-3">All closed jobs are invoiced. Nothing pending.</td></tr>`;
+}
+function doGenerateInvoice(containerId){
+  const inv = generateInvoiceForContainer(containerId);
+  if(inv){ showToast(`Invoice ${inv.invoiceNo} generated (${fmtTZS(inv.total)}).`); renderInvoiceGenerate(); }
+}
+function renderInvoiceRegister(){
+  const q = (document.getElementById('invRegSearch').value||'').toLowerCase();
+  const st = document.getElementById('invRegStatus').value;
+  const rows = INVOICES.filter(inv=>{
+    const cs = invoiceComputedStatus(inv);
+    return (!st||cs===st) && (!q || (inv.invoiceNo+inv.containerNo+inv.customer).toLowerCase().includes(q));
+  }).sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('invoiceRegisterBody').innerHTML = rows.map(inv=>{
+    const cs = invoiceComputedStatus(inv); const color = invoiceStatusColor(cs);
+    return `<tr><td class="mono">${inv.invoiceNo}</td><td class="mono">${inv.containerNo}</td><td>${inv.customer}</td><td>${inv.date}</td><td>${inv.dueDate}</td>
+    <td class="fw-bold">${fmtTZS(inv.total)}</td><td><span class="badge-status" style="background:${color}22;color:${color};border:1px solid ${color}55">${cs}</span></td>
+    <td><button class="btn btn-sm btn-outline-secondary" onclick="openInvoiceView('${inv.id}')"><i class="fa-solid fa-eye"></i></button></td></tr>`;
+  }).join('') || `<tr><td colspan="8" class="text-center text-muted py-3">No invoices found.</td></tr>`;
+}
+document.getElementById('invRegSearch')?.addEventListener('input', renderInvoiceRegister);
+
+function openInvoiceView(invId){
+  const inv = INVOICES.find(x=>x.id===invId); if(!inv) return;
+  const cs = invoiceComputedStatus(inv); const color = invoiceStatusColor(cs);
+  const c = DB.find(x=>x.containerNo===inv.containerNo);
+  document.getElementById('invoiceViewBody').innerHTML = `
+    <div id="invoicePrintArea">
+      <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+          <div style="font-weight:700;font-size:1.05rem;color:var(--navy)">Lodhia Industries Ltd / RSA Group</div>
+          <div class="small-muted">ACME Inland Container Depot, Kibaha, Tanzania</div>
+          <div class="small-muted">TIN: 100-XXX-XXX · VRN: 40-XXXXXX</div>
+        </div>
+        <div class="text-end">
+          <div style="font-weight:700;font-size:1.2rem;">TAX INVOICE</div>
+          <div class="mono">${inv.invoiceNo}</div>
+          <span class="badge-status" style="background:${color}22;color:${color};border:1px solid ${color}55">${cs}</span>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-6">
+          <div class="small-muted fw-bold text-uppercase" style="font-size:.7rem;">Bill To</div>
+          <div class="fw-bold">${inv.customer}</div>
+          <div class="small-muted">${c?c.cha:''}</div>
+        </div>
+        <div class="col-6 text-end">
+          <div><span class="small-muted">Invoice Date:</span> ${inv.date}</div>
+          <div><span class="small-muted">Due Date:</span> ${inv.dueDate}</div>
+          <div><span class="small-muted">Container:</span> <span class="mono">${inv.containerNo}</span></div>
+        </div>
+      </div>
+      <table class="table table-sm table-erp">
+        <thead><tr><th>Description</th><th class="text-end">Qty</th><th>Unit</th><th class="text-end">Rate (TZS)</th><th class="text-end">Amount (TZS)</th></tr></thead>
+        <tbody>${inv.items.map(i=>`<tr><td>${i.desc}</td><td class="text-end">${i.qty}</td><td>${i.unit}</td><td class="text-end">${i.rate.toLocaleString()}</td><td class="text-end">${i.amount.toLocaleString()}</td></tr>`).join('')}</tbody>
+        <tfoot>
+          <tr><td colspan="4" class="text-end fw-bold">Subtotal</td><td class="text-end">${inv.subtotal.toLocaleString()}</td></tr>
+          <tr><td colspan="4" class="text-end fw-bold">VAT (18%)</td><td class="text-end">${inv.vat.toLocaleString()}</td></tr>
+          <tr><td colspan="4" class="text-end fw-bold" style="font-size:1rem">Total Due (TZS)</td><td class="text-end fw-bold" style="font-size:1rem">${inv.total.toLocaleString()}</td></tr>
+        </tfoot>
+      </table>
+      ${cs==='Paid' ? `<div class="small-muted">Paid on ${inv.paymentDate} · Ref: ${inv.paymentRef}</div>` : `<div class="small-muted">Payment due within 14 days. Bank: NMB Bank Tanzania · Acc: 2024XXXXXXX</div>`}
+    </div>`;
+  const markBtn = document.getElementById('invoiceMarkPaidBtn');
+  markBtn.style.display = cs==='Paid' ? 'none' : '';
+  const newMarkBtn = markBtn.cloneNode(true); markBtn.parentNode.replaceChild(newMarkBtn, markBtn);
+  newMarkBtn.addEventListener('click', ()=>openMarkInvoicePaid(inv.id));
+  const printBtn = document.getElementById('invoicePrintBtn');
+  const newPrintBtn = printBtn.cloneNode(true); printBtn.parentNode.replaceChild(newPrintBtn, printBtn);
+  newPrintBtn.addEventListener('click', ()=>printInvoice(inv.id));
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('invoiceViewModal')).show();
+}
+function openMarkInvoicePaid(invId){
+  const inv = INVOICES.find(x=>x.id===invId);
+  bootstrap.Modal.getInstance(document.getElementById('invoiceViewModal'))?.hide();
+  openActionModal(`<i class="fa-solid fa-circle-check me-2"></i>Record Payment — ${inv.invoiceNo}`,
+    `<div class="mb-2"><label class="form-label">Payment Date</label><input type="date" class="form-control" id="invPayDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">Payment Reference</label><input class="form-control" id="invPayRef" value="PBZ-${randInt(1000000,9999999)}"></div>
+     <div class="small-muted">Amount: ${fmtTZS(inv.total)}</div>`,
+    ()=>{
+      inv.status="Paid"; inv.paymentDate=document.getElementById('invPayDate').value||todayISO(); inv.paymentRef=document.getElementById('invPayRef').value;
+      saveInvoices(); closeActionModal(); showToast(`${inv.invoiceNo} marked as paid.`); refreshCurrentView();
+    });
+}
+function printInvoice(invId){
+  const content = document.getElementById('invoicePrintArea').innerHTML;
+  const w = window.open('', '_blank', 'width=800,height=900');
+  w.document.write(`<!DOCTYPE html><html><head><title>Invoice</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body{font-family:'IBM Plex Sans',sans-serif;padding:30px;color:#1a2437;} .mono{font-family:monospace;}
+    .badge-status{font-size:.7rem;padding:5px 9px;font-weight:600;border-radius:20px;} table{font-size:.85rem;}</style>
+    </head><body>${content}</body></html>`);
+  w.document.close();
+  setTimeout(()=>{ w.print(); }, 400);
+}
+
+/* =====================================================================
+   REPORT: INVOICE REPORT
+===================================================================== */
+function renderRepInvoice(){
+  const st = document.getElementById('invRepStatus').value;
+  const rows = INVOICES.filter(inv=> !st || invoiceComputedStatus(inv)===st).sort((a,b)=>b.date.localeCompare(a.date));
+  const totalInvoiced = INVOICES.reduce((s,i)=>s+i.total,0);
+  const totalCollected = INVOICES.filter(i=>invoiceComputedStatus(i)==='Paid').reduce((s,i)=>s+i.total,0);
+  const overdueCount = INVOICES.filter(i=>invoiceComputedStatus(i)==='Overdue').length;
+  document.getElementById('invRepKpi').innerHTML = [
+    kpiCard("Total Invoices", INVOICES.length, "fa-file-invoice-dollar","#2563eb"),
+    kpiCard("Total Invoiced", fmtTZS(totalInvoiced), "fa-sack-dollar","#7c3aed"),
+    kpiCard("Total Collected", fmtTZS(totalCollected), "fa-circle-check","#16a34a"),
+    kpiCard("Outstanding", fmtTZS(totalInvoiced-totalCollected), "fa-hourglass-half","#d97706"),
+    kpiCard("Overdue Invoices", overdueCount, "fa-triangle-exclamation","#dc2626"),
+  ].join('');
+  const statusCounts = {Issued:0,Paid:0,Overdue:0};
+  INVOICES.forEach(i=>statusCounts[invoiceComputedStatus(i)]++);
+  destroyChart('invStatus');
+  charts.invStatus = new Chart(document.getElementById('chInvStatus'), {type:'doughnut', data:{labels:Object.keys(statusCounts), datasets:[{data:Object.values(statusCounts), backgroundColor:['#2563eb','#16a34a','#dc2626']}]}, options:{plugins:{legend:{position:'bottom'}}}});
+
+  const months=[]; for(let i=5;i>=0;i--){ const d=new Date(); d.setMonth(d.getMonth()-i); months.push(d.toISOString().slice(0,7)); }
+  const invByMonth = months.map(m=>INVOICES.filter(i=>i.date.slice(0,7)===m).reduce((s,i)=>s+i.total,0));
+  const collByMonth = months.map(m=>INVOICES.filter(i=>i.date.slice(0,7)===m && invoiceComputedStatus(i)==='Paid').reduce((s,i)=>s+i.total,0));
+  destroyChart('invTrend');
+  charts.invTrend = new Chart(document.getElementById('chInvTrend'), {type:'bar', data:{labels:months, datasets:[
+    {label:'Invoiced', data:invByMonth, backgroundColor:'#123a6b'}, {label:'Collected', data:collByMonth, backgroundColor:'#16a34a'}
+  ]}, options:{plugins:{legend:{position:'bottom'}}}});
+
+  document.getElementById('invRepBody').innerHTML = rows.map(inv=>{
+    const cs = invoiceComputedStatus(inv); const color = invoiceStatusColor(cs);
+    return `<tr><td class="mono">${inv.invoiceNo}</td><td class="mono">${inv.containerNo}</td><td>${inv.customer}</td><td>${inv.date}</td><td>${inv.dueDate}</td>
+    <td>${fmtTZS(inv.subtotal)}</td><td>${fmtTZS(inv.vat)}</td><td class="fw-bold">${fmtTZS(inv.total)}</td>
+    <td><span class="badge-status" style="background:${color}22;color:${color};border:1px solid ${color}55">${cs}</span></td>
+    <td><button class="btn btn-sm btn-outline-secondary" onclick="openInvoiceView('${inv.id}')"><i class="fa-solid fa-eye"></i></button></td></tr>`;
+  }).join('') || `<tr><td colspan="10" class="text-center text-muted py-3">No invoices generated yet.</td></tr>`;
+}
+document.getElementById('invRepStatus')?.addEventListener('change', renderRepInvoice);
+document.getElementById('invRegStatus')?.addEventListener('change', renderInvoiceRegister);
+
+// seed a batch of invoices for already-closed containers so the register isn't empty on first run
+if(!INVOICES.length){
+  DB.filter(c=>c.status==="Closed").forEach(c=>{ if(!c.invoiceNo) generateInvoiceForContainer(c.id); });
+}
+
+function showToast(msg, isErr){
+  const t=document.getElementById('mainToast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.toggle('bg-success', !isErr);
+  t.classList.toggle('bg-danger', !!isErr);
+  bootstrap.Toast.getOrCreateInstance(t,{delay:2500}).show();
+}
+function statusBadge(status){
+  const c = STATUS_COLOR[status]||'#64748b';
+  return `<span class="badge-status" style="background:${c}22;color:${c};border:1px solid ${c}55;">${status}</span>`;
+}
+function exportCSV(rows, filename){
+  if(!rows || !rows.length){ showToast("Nothing to export.", true); return; }
+  const headers = Object.keys(rows[0]);
+  const csv = [headers.join(",")].concat(rows.map(r=>headers.map(h=>`"${(r[h]??'').toString().replace(/"/g,'""')}"`).join(","))).join("\n");
+  const blob = new Blob([csv],{type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename+'.csv'; a.click();
+  showToast("Exported "+rows.length+" rows to CSV.");
+}
+
+/* =====================================================================
+   NAVIGATION
+===================================================================== */
+const VIEW_LABELS = {
+  dashboard:"ICD Dashboard", masters:"Master Data Management", arrival:"Container Arrival", gatein:"ICD Gate In", yard:"Yard Allocation",
+  customs:"Customs & Duty", delivery:"Delivery Order & Dispatch", gateout:"Gate Out & Closure", invoice:"Invoice & Billing", tracking:"Container Tracking",
+  "rep-gate":"Gate In / Out Report", "rep-yard":"Yard Occupancy Report", "rep-aging":"Aging & Demurrage Report",
+  "rep-customs":"Customs Clearance Report", "rep-revenue":"Revenue & Billing Summary", "rep-invoice":"Invoice Report"
+};
+let currentView = "dashboard";
+const renderers = {
+  dashboard: renderDashboard, masters: renderMastersView, arrival: renderArrival, gatein: renderGateIn, yard: renderYard,
+  customs: renderCustoms, delivery: renderDelivery, gateout: renderGateOut, invoice: renderInvoice, tracking: renderTracking,
+  "rep-gate": renderRepGate, "rep-yard": renderRepYard, "rep-aging": renderRepAging,
+  "rep-customs": renderRepCustoms, "rep-revenue": renderRepRevenue, "rep-invoice": renderRepInvoice
+};
+function showView(name){
+  currentView = name;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.side-link').forEach(a=>a.classList.toggle('active', a.dataset.view===name));
+  document.getElementById('crumbLabel').textContent = VIEW_LABELS[name];
+  if(window.innerWidth<992) document.getElementById('sidebar').classList.remove('open');
+  renderers[name]();
+}
+function refreshCurrentView(){ renderers[currentView](); }
+document.querySelectorAll('.side-link').forEach(a=>a.addEventListener('click', ()=>showView(a.dataset.view)));
+document.getElementById('hamBtn').addEventListener('click', ()=>document.getElementById('sidebar').classList.toggle('open'));
+
+function kpiCard(label, value, icon, color, foot){
+  return `<div class="col-6 col-md-4 col-xl-2"><div class="kpi"><div class="bar" style="background:${color}"></div>
+    <div class="d-flex justify-content-between"><div class="label">${label}</div><i class="fa-solid ${icon}" style="color:${color}"></i></div>
+    <div class="value">${value}</div><div class="foot">${foot||''}</div></div></div>`;
+}
+
+/* =====================================================================
+   DASHBOARD
+===================================================================== */
+let charts = {};
+function destroyChart(key){ if(charts[key]){ charts[key].destroy(); delete charts[key]; } }
+
+function renderDashboard(){
+  document.getElementById('dashTime').textContent = new Date().toLocaleString('en-GB',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'});
+  const today = todayISO();
+  const gateInToday = DB.filter(c=>c.gateInDate===today).length;
+  const gateOutToday = DB.filter(c=>c.gateOutDate===today).length;
+  const pendingClearance = DB.filter(c=>["Gated In","Yard Allocated","Declared"].includes(c.status)).length;
+  const pendingDuty = DB.filter(c=>c.status==="Duty Assessed").length;
+  const pendingInspect = DB.filter(c=>c.status==="Duty Paid").length;
+  const inYard = DB.filter(c=>!c.gateOutDate && c.gateInDate).length;
+  const totalCap = YARD_BLOCKS.reduce((s,b)=>s+b.capacity,0);
+  const avgClear = (()=>{ const done = DB.filter(c=>c.releaseDate); if(!done.length) return 0; return Math.round(done.reduce((s,c)=>s+daysBetween(c.arrivalDate,c.releaseDate),0)/done.length); })();
+  const revenueToday = DB.filter(c=>c.gateOutDate===today).length * 320000;
+  const revenueMonth = DB.filter(c=>c.gateOutDate && c.gateOutDate.slice(0,7)===today.slice(0,7)).length * 320000 + DB.length*45000;
+
+  document.getElementById('kpiRow').innerHTML = [
+    kpiCard("Containers Today", DB.filter(c=>c.arrivalDate===today).length, "fa-ship","#2563eb"),
+    kpiCard("Gate In Today", gateInToday, "fa-door-open","#0d9488"),
+    kpiCard("Gate Out Today", gateOutToday, "fa-door-closed","#334155"),
+    kpiCard("Pending Clearance", pendingClearance, "fa-hourglass-half","#d97706"),
+    kpiCard("Pending Duty Payment", pendingDuty, "fa-file-invoice-dollar","#7c3aed"),
+    kpiCard("Pending Inspection", pendingInspect, "fa-magnifying-glass","#dc2626"),
+    kpiCard("Containers in Yard", inYard, "fa-warehouse","#2563eb", Math.round(inYard/totalCap*100)+"% of capacity"),
+    kpiCard("Avg. Clearance Time", avgClear+" days", "fa-gauge","#16a34a"),
+    kpiCard("Revenue Today", fmtTZS(revenueToday), "fa-sack-dollar","#16a34a"),
+    kpiCard("Revenue This Month", fmtTZS(revenueMonth), "fa-coins","#e8890c"),
+  ].join('');
+
+  // status doughnut
+  const statusCounts = {};
+  DB.forEach(c=>statusCounts[c.status]=(statusCounts[c.status]||0)+1);
+  destroyChart('status');
+  charts.status = new Chart(document.getElementById('chStatus'), {type:'doughnut', data:{labels:Object.keys(statusCounts), datasets:[{data:Object.values(statusCounts), backgroundColor:Object.keys(statusCounts).map(s=>STATUS_COLOR[s])}]}, options:{plugins:{legend:{position:'bottom',labels:{font:{size:9}}}}}});
+
+  const lineCounts = {}; LINES.forEach(l=>lineCounts[l]=DB.filter(c=>c.shippingLine===l).length);
+  destroyChart('line');
+  charts.line = new Chart(document.getElementById('chLine'), {type:'bar', data:{labels:Object.keys(lineCounts), datasets:[{data:Object.values(lineCounts), backgroundColor:'#123a6b', borderRadius:4}]}, options:{plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}}}});
+
+  const yardData = YARD_BLOCKS.map(b=>({...b, occ: Math.min(b.capacity, DB.filter(c=>c.yardLocation && c.yardLocation.startsWith(b.block[6])).length + randInt(5,15))}));
+  destroyChart('yard');
+  charts.yard = new Chart(document.getElementById('chYard'), {type:'bar', data:{labels:yardData.map(b=>b.block.split(' - ')[0]), datasets:[
+    {label:'Occupied', data:yardData.map(b=>b.occ), backgroundColor:'#e8890c'},
+    {label:'Available', data:yardData.map(b=>b.capacity-b.occ), backgroundColor:'#e2e8f0'}
+  ]}, options:{plugins:{legend:{position:'bottom',labels:{font:{size:9}}}}, scales:{x:{stacked:true}, y:{stacked:true}}}});
+
+  // trend last 14 days
+  const days=[]; for(let i=13;i>=0;i--) days.push(todayISO(-i));
+  const gi = days.map(d=>DB.filter(c=>c.gateInDate===d).length);
+  const go = days.map(d=>DB.filter(c=>c.gateOutDate===d).length);
+  destroyChart('trend');
+  charts.trend = new Chart(document.getElementById('chTrend'), {type:'line', data:{labels:days.map(d=>d.slice(5)), datasets:[
+    {label:'Gate In', data:gi, borderColor:'#0d9488', backgroundColor:'#0d948833', tension:.3, fill:true},
+    {label:'Gate Out', data:go, borderColor:'#334155', backgroundColor:'#33415533', tension:.3, fill:true}
+  ]}, options:{plugins:{legend:{position:'bottom'}}}});
+
+  const custCounts = {}; DB.forEach(c=>custCounts[c.customer]=(custCounts[c.customer]||0)+1);
+  const topCust = Object.entries(custCounts).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxV = Math.max(...topCust.map(x=>x[1]),1);
+  document.getElementById('topCustomers').innerHTML = topCust.map(([name,v])=>`
+    <div class="mb-2"><div class="d-flex justify-content-between small"><span>${name}</span><b>${v}</b></div>
+    <div class="progress"><div class="progress-bar" style="width:${v/maxV*100}%;background:var(--navy)"></div></div></div>`).join('');
+
+  const queue = DB.filter(c=>!["Closed","Gated Out"].includes(c.status)).sort((a,b)=>daysInYard(b)-daysInYard(a)).slice(0,8);
+  document.getElementById('pendingQueueBody').innerHTML = queue.map(c=>`
+    <tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${statusBadge(c.status)}</td>
+    <td>${daysInYard(c)}</td><td>${nextActionLabel(c.status)}</td>
+    <td><button class="btn btn-sm btn-outline-primary" onclick="jumpTo('${c.id}')"><i class="fa-solid fa-arrow-right"></i></button></td></tr>`).join('') || '<tr><td colspan="6" class="text-center text-muted py-3">No pending items 🎉</td></tr>';
+}
+function nextActionLabel(status){
+  const map = {"Arrived":"Transfer to ICD","ICD Transfer":"Gate In","Gated In":"Allocate Yard","Yard Allocated":"Lodge Declaration",
+  "Declared":"Assess Duty","Duty Assessed":"Collect Duty Payment","Duty Paid":"Inspection","Inspected":"Release","Released":"Issue DO",
+  "DO Issued":"Assign Transport","Dispatched":"Confirm Delivery","Delivered":"Empty Return","Empty Returned":"Gate Out"};
+  return map[status]||"—";
+}
+function jumpTo(id){
+  const c = DB.find(x=>x.id===id); if(!c) return;
+  const map = {"Arrived":"gatein","ICD Transfer":"gatein","Gated In":"yard","Yard Allocated":"customs","Declared":"customs","Duty Assessed":"customs","Duty Paid":"customs",
+  "Inspected":"delivery","Released":"delivery","DO Issued":"delivery","Dispatched":"gateout","Delivered":"gateout","Empty Returned":"gateout"};
+  showView(map[c.status]||"tracking");
+}
+
+/* =====================================================================
+   CONTAINER ARRIVAL
+===================================================================== */
+function populateLineFilter(){
+  const sel = document.getElementById('arrLineFilter');
+  if(sel.options.length<=1) LINES.forEach(l=>sel.insertAdjacentHTML('beforeend', `<option>${l}</option>`));
+}
+document.getElementById('arrivalModal').addEventListener('show.bs.modal', ()=>{
+  const lineRows = loadMasterRows(getMaster('shippingline'));
+  document.getElementById('arrShippingLineSelect').innerHTML = lineRows.map(r=>`<option>${r.name}</option>`).join('');
+  const custRows = loadMasterRows(getMaster('customermaster'));
+  document.getElementById('arrCustomerList').innerHTML = custRows.map(r=>`<option value="${r.name}">`).join('');
+  const chaRows = loadMasterRows(getMaster('chamaster'));
+  document.getElementById('arrChaList').innerHTML = chaRows.map(r=>`<option value="${r.name}">`).join('');
+});
+function getArrivalRows(){
+  return DB.map(c=>({ContainerNo:c.containerNo, Size:c.size, Type:c.type, ShippingLine:c.shippingLine, Vessel:c.vessel, BL:c.blNumber, ArrivalDate:c.arrivalDate, Customer:c.customer, Status:c.status}));
+}
+function renderArrival(){
+  populateLineFilter();
+  const q = (document.getElementById('arrSearch').value||'').toLowerCase();
+  const lf = document.getElementById('arrLineFilter').value;
+  const rows = DB.filter(c=> (!lf||c.shippingLine===lf) && (!q || (c.containerNo+c.blNumber+c.vessel).toLowerCase().includes(q)))
+                 .sort((a,b)=> b.arrivalDate.localeCompare(a.arrivalDate));
+  document.getElementById('arrivalBody').innerHTML = rows.map(c=>`
+    <tr><td class="mono">${c.containerNo}</td><td>${c.size} · ${c.type}</td><td>${c.shippingLine}</td>
+    <td>${c.vessel}</td><td class="mono">${c.blNumber}</td><td>${c.arrivalDate}</td><td>${c.cargoType}</td>
+    <td>${c.customer}</td><td>${statusBadge(c.status)}</td>
+    <td><button class="btn btn-sm btn-outline-secondary" onclick="showView('tracking');document.getElementById('trackSelect').value='${c.id}';renderTrackingDetail();"><i class="fa-solid fa-route"></i></button></td></tr>
+  `).join('') || `<tr><td colspan="10" class="text-center text-muted py-3">No arrivals found.</td></tr>`;
+}
+document.getElementById('arrSearch').addEventListener('input', renderArrival);
+function submitArrival(){
+  const f = document.getElementById('arrivalForm');
+  const fd = new FormData(f);
+  if(!fd.get('containerNo')){ showToast('Container number is required.', true); return; }
+  const c = {
+    id: uid(), containerNo: fd.get('containerNo').toUpperCase(), size: fd.get('size'), type: fd.get('type'),
+    shippingLine: fd.get('shippingLine'), vessel: fd.get('vessel')||('MV '+fd.get('shippingLine')+' Voyager'),
+    blNumber: fd.get('blNumber')||('BL'+randInt(100000,999999)), arrivalDate: fd.get('arrivalDate')||todayISO(),
+    customer: fd.get('customer')||'Walk-in Customer', cha: fd.get('cha')||'Coastal Clearing & Forwarding', forwarder: fd.get('cha')||'Coastal Clearing & Forwarding',
+    cargoType: fd.get('cargoType'), commodity: fd.get('cargoType'), packages: randInt(20,400), weightKg: Number(fd.get('weightKg'))||15000,
+    status: "Arrived", yardLocation:"", gateInDate:"", declarationNo:"", declarationDate:"", assessedDuty:0, dutyPaid:0, paymentRef:"",
+    inspectionResult:"", releaseDate:"", doNumber:"", doDate:"", vehicleNo:"", driverName:"", dispatchDate:"", deliveryDate:"",
+    emptyReturnDate:"", gateOutDate:"", closedDate:"", remarks:""
+  };
+  DB.unshift(c); saveDB(); f.reset();
+  bootstrap.Modal.getInstance(document.getElementById('arrivalModal')).hide();
+  showToast(`Container ${c.containerNo} recorded as arrived.`);
+  renderArrival();
+}
+
+/* =====================================================================
+   GENERIC ACTION MODAL HELPER
+===================================================================== */
+function openActionModal(title, bodyHtml, onConfirm){
+  document.getElementById('actionModalTitle').innerHTML = title;
+  document.getElementById('actionModalBody').innerHTML = bodyHtml;
+  const btn = document.getElementById('actionModalConfirm');
+  const newBtn = btn.cloneNode(true); btn.parentNode.replaceChild(newBtn, btn);
+  newBtn.addEventListener('click', onConfirm);
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('actionModal')).show();
+}
+function closeActionModal(){ bootstrap.Modal.getInstance(document.getElementById('actionModal'))?.hide(); }
+
+/* =====================================================================
+   ICD GATE IN
+===================================================================== */
+function renderGateIn(){
+  const rows = DB.filter(c=>["Arrived","ICD Transfer"].includes(c.status)).sort((a,b)=>a.arrivalDate.localeCompare(b.arrivalDate));
+  document.getElementById('gateinBody').innerHTML = rows.map(c=>`
+    <tr><td class="mono">${c.containerNo}</td><td>${c.size} · ${c.type}</td><td>${c.shippingLine}</td>
+    <td>${c.arrivalDate}</td><td>${c.customer}</td><td>${c.cha}</td><td>${statusBadge(c.status)}</td>
+    <td>${c.gateInDate||'—'}</td>
+    <td><button class="btn btn-sm btn-navy" onclick="openGateIn('${c.id}')"><i class="fa-solid fa-door-open me-1"></i>Gate In</button></td></tr>
+  `).join('') || `<tr><td colspan="9" class="text-center text-muted py-3">No containers pending gate-in.</td></tr>`;
+}
+function openGateIn(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-door-open me-2"></i>Gate In — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Gate In Date</label><input type="date" class="form-control" id="giDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">Gate Ref No</label><input class="form-control" id="giRef" value="GI-${randInt(10000,99999)}"></div>
+     <div class="small-muted">Seal &amp; condition check performed at gate. Container will be queued for yard allocation.</div>`,
+    ()=>{
+      c.status="Gated In"; c.gateInDate=document.getElementById('giDate').value||todayISO(); saveDB();
+      closeActionModal(); showToast(`${c.containerNo} gated in successfully.`); renderGateIn();
+    });
+}
+
+/* =====================================================================
+   YARD ALLOCATION
+===================================================================== */
+function renderYard(){
+  const rows = DB.filter(c=>c.status==="Gated In" || (c.status==="Yard Allocated"));
+  document.getElementById('yardBlockSummary').innerHTML = YARD_BLOCKS.map(b=>{
+    const occ = Math.min(b.capacity, DB.filter(c=>c.yardLocation && c.yardLocation.startsWith(b.block[6])).length + randInt(5,15));
+    const pct = Math.round(occ/b.capacity*100);
+    const color = pct>85?'#dc2626':pct>60?'#d97706':'#16a34a';
+    return `<div class="col-md-3"><div class="card-x p-3"><div class="small-muted">${b.block}</div>
+      <div class="d-flex justify-content-between align-items-end mt-1"><b style="font-size:1.1rem">${occ}/${b.capacity}</b><span style="color:${color};font-weight:700">${pct}%</span></div>
+      <div class="progress mt-2"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div></div></div>`;
+  }).join('');
+  document.getElementById('yardBody').innerHTML = rows.sort((a,b)=>a.gateInDate.localeCompare(b.gateInDate)).map(c=>`
+    <tr><td class="mono">${c.containerNo}</td><td>${c.size}</td><td>${c.gateInDate}</td><td>${c.customer}</td>
+    <td>${c.yardLocation? '<span class="mono">'+c.yardLocation+'</span>' : '<span class="text-muted">Unallocated</span>'}</td>
+    <td>${daysInYard(c)}</td><td>${statusBadge(c.status)}</td>
+    <td><button class="btn btn-sm ${c.yardLocation?'btn-outline-secondary':'btn-navy'}" onclick="openYardAllocate('${c.id}')"><i class="fa-solid fa-warehouse me-1"></i>${c.yardLocation?'Reallocate':'Allocate'}</button></td></tr>
+  `).join('') || `<tr><td colspan="8" class="text-center text-muted py-3">No containers pending yard allocation.</td></tr>`;
+}
+function openYardAllocate(id){
+  const c = DB.find(x=>x.id===id);
+  const blockOptions = YARD_BLOCKS.map(b=>`<option>${b.block.split(' - ')[0]}</option>`).join('');
+  openActionModal(`<i class="fa-solid fa-warehouse me-2"></i>Yard Allocation — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Yard Block</label><select class="form-select" id="ybBlock">${blockOptions}</select></div>
+     <div class="mb-2"><label class="form-label">Slot No</label><input class="form-control" id="ybSlot" value="${randInt(1,40)}"></div>`,
+    ()=>{
+      const block = document.getElementById('ybBlock').value, slot = document.getElementById('ybSlot').value;
+      c.yardLocation = block+'-'+slot; c.status="Yard Allocated"; saveDB();
+      closeActionModal(); showToast(`${c.containerNo} allocated to ${c.yardLocation}.`); renderYard();
+    });
+}
+
+/* =====================================================================
+   CUSTOMS & DUTY
+===================================================================== */
+let customsTab = 'declare';
+document.getElementById('customsTabs').addEventListener('click', e=>{
+  const a = e.target.closest('a'); if(!a) return; e.preventDefault();
+  document.querySelectorAll('#customsTabs a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
+  customsTab = a.dataset.ctab; renderCustoms();
+});
+function renderCustoms(){
+  const head = document.getElementById('customsHead'), body = document.getElementById('customsBody');
+  if(customsTab==='declare'){
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>CHA</th><th>Yard Location</th><th>Cargo</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Yard Allocated");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.cha}</td><td class="mono">${c.yardLocation}</td><td>${c.cargoType}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-navy" onclick="openDeclare('${c.id}')"><i class="fa-solid fa-file-signature me-1"></i>Lodge Declaration</button></td></tr>`).join('')
+      || `<tr><td colspan="7" class="text-center text-muted py-3">No containers pending declaration.</td></tr>`;
+  } else if(customsTab==='assess'){
+    head.innerHTML = `<tr><th>Declaration No</th><th>Container</th><th>Customer</th><th>CIF Value (est.)</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Declared");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.declarationNo}</td><td class="mono">${c.containerNo}</td><td>${c.customer}</td>
+      <td>${fmtTZS(c.weightKg*280)}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-navy" onclick="openAssess('${c.id}')"><i class="fa-solid fa-calculator me-1"></i>Assess Duty</button></td></tr>`).join('')
+      || `<tr><td colspan="6" class="text-center text-muted py-3">No declarations pending assessment.</td></tr>`;
+  } else if(customsTab==='pay'){
+    head.innerHTML = `<tr><th>Declaration No</th><th>Container</th><th>Customer</th><th>Assessed Duty</th><th>Paid</th><th>Balance</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Duty Assessed");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.declarationNo}</td><td class="mono">${c.containerNo}</td><td>${c.customer}</td>
+      <td>${fmtTZS(c.assessedDuty)}</td><td>${fmtTZS(c.dutyPaid)}</td><td class="text-danger fw-bold">${fmtTZS(c.assessedDuty-c.dutyPaid)}</td>
+      <td><button class="btn btn-sm btn-accent" onclick="openPay('${c.id}')"><i class="fa-solid fa-money-bill-wave me-1"></i>Record Payment</button></td></tr>`).join('')
+      || `<tr><td colspan="7" class="text-center text-muted py-3">No pending duty payments.</td></tr>`;
+  } else {
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Duty Paid Date</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>["Duty Paid","Inspected"].includes(c.status));
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.dutyPaidDate||'—'}</td><td>${statusBadge(c.status)}</td>
+      <td>${c.status==="Duty Paid" ? `<button class="btn btn-sm btn-navy" onclick="openInspect('${c.id}')"><i class="fa-solid fa-magnifying-glass me-1"></i>Inspect</button>`
+      : `<button class="btn btn-sm btn-outline-success" onclick="openRelease('${c.id}')"><i class="fa-solid fa-check-circle me-1"></i>Release</button>`}</td></tr>`).join('')
+      || `<tr><td colspan="5" class="text-center text-muted py-3">No containers pending inspection/release.</td></tr>`;
+  }
+}
+function openDeclare(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-file-signature me-2"></i>Customs Declaration — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">TANCIS Declaration No</label><input class="form-control" id="dcNo" value="TANCIS-${randInt(100000,999999)}"></div>
+     <div class="mb-2"><label class="form-label">Declaration Date</label><input type="date" class="form-control" id="dcDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">HS Code</label><input class="form-control" id="dcHs" value="87${randInt(10,99)}.${randInt(10,99)}"></div>
+     <div class="small-muted">Regime: Import for Home Consumption (IM4)</div>`,
+    ()=>{
+      c.declarationNo = document.getElementById('dcNo').value; c.declarationDate = document.getElementById('dcDate').value||todayISO();
+      c.status = "Declared"; saveDB(); closeActionModal(); showToast(`Declaration ${c.declarationNo} lodged.`); renderCustoms();
+    });
+}
+function openAssess(id){
+  const c = DB.find(x=>x.id===id);
+  const cif = c.weightKg*280;
+  const importDuty = Math.round(cif*0.25), vat = Math.round((cif+importDuty)*0.18), excise = Math.round(cif*0.05), railway = Math.round(cif*0.015);
+  const total = importDuty+vat+excise+railway;
+  openActionModal(`<i class="fa-solid fa-calculator me-2"></i>Duty Assessment — ${c.containerNo}`,
+    `<table class="table table-sm"><tbody>
+      <tr><td>CIF Value</td><td class="text-end">${fmtTZS(cif)}</td></tr>
+      <tr><td>Import Duty (25%)</td><td class="text-end">${fmtTZS(importDuty)}</td></tr>
+      <tr><td>VAT (18%)</td><td class="text-end">${fmtTZS(vat)}</td></tr>
+      <tr><td>Excise Duty (5%)</td><td class="text-end">${fmtTZS(excise)}</td></tr>
+      <tr><td>Railway Development Levy (1.5%)</td><td class="text-end">${fmtTZS(railway)}</td></tr>
+      <tr class="fw-bold border-top"><td>Total Assessed Duty</td><td class="text-end">${fmtTZS(total)}</td></tr>
+    </tbody></table>`,
+    ()=>{
+      c.assessedDuty = total; c.status = "Duty Assessed"; saveDB();
+      closeActionModal(); showToast(`Duty assessed: ${fmtTZS(total)}.`); renderCustoms();
+    });
+}
+function openPay(id){
+  const c = DB.find(x=>x.id===id);
+  const balance = c.assessedDuty - c.dutyPaid;
+  openActionModal(`<i class="fa-solid fa-money-bill-wave me-2"></i>Duty Payment — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Amount (TZS)</label><input type="number" class="form-control" id="payAmt" value="${balance}"></div>
+     <div class="mb-2"><label class="form-label">Payment Reference (PBZ / Bank)</label><input class="form-control" id="payRef" value="PBZ-${randInt(1000000,9999999)}"></div>
+     <div class="mb-2"><label class="form-label">Payment Date</label><input type="date" class="form-control" id="payDate" value="${todayISO()}"></div>`,
+    ()=>{
+      const amt = Number(document.getElementById('payAmt').value)||0;
+      c.dutyPaid += amt; c.paymentRef = document.getElementById('payRef').value; c.dutyPaidDate = document.getElementById('payDate').value||todayISO();
+      if(c.dutyPaid >= c.assessedDuty) c.status = "Duty Paid";
+      saveDB(); closeActionModal(); showToast(`Payment of ${fmtTZS(amt)} recorded.`); renderCustoms();
+    });
+}
+function openInspect(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-magnifying-glass me-2"></i>Customs Inspection — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Inspection Result</label><select class="form-select" id="insResult"><option>Passed</option><option>Flagged for Further Verification</option></select></div>
+     <div class="mb-2"><label class="form-label">Inspection Date</label><input type="date" class="form-control" id="insDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">Remarks</label><input class="form-control" id="insRemarks" placeholder="Optional"></div>`,
+    ()=>{
+      c.inspectionResult = document.getElementById('insResult').value; c.status = "Inspected"; saveDB();
+      closeActionModal(); showToast(`Inspection recorded: ${c.inspectionResult}.`); renderCustoms();
+    });
+}
+function openRelease(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-check-circle me-2"></i>Customs Release — ${c.containerNo}`,
+    `<div class="small-muted mb-2">This will issue Customs Release for the container, clearing it for Delivery Order.</div>
+     <div class="mb-2"><label class="form-label">Release Date</label><input type="date" class="form-control" id="relDate" value="${todayISO()}"></div>`,
+    ()=>{
+      c.releaseDate = document.getElementById('relDate').value||todayISO(); c.status="Released"; saveDB();
+      closeActionModal(); showToast(`${c.containerNo} released by Customs.`); renderCustoms();
+    });
+}
+
+/* =====================================================================
+   DELIVERY ORDER & DISPATCH
+===================================================================== */
+let deliveryTab = 'do';
+document.getElementById('deliveryTabs').addEventListener('click', e=>{
+  const a = e.target.closest('a'); if(!a) return; e.preventDefault();
+  document.querySelectorAll('#deliveryTabs a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
+  deliveryTab = a.dataset.dtab; renderDelivery();
+});
+function renderDelivery(){
+  const head = document.getElementById('deliveryHead'), body = document.getElementById('deliveryBody');
+  if(deliveryTab==='do'){
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Release Date</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Released");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.releaseDate}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-navy" onclick="openDO('${c.id}')"><i class="fa-solid fa-file-invoice me-1"></i>Issue D.O.</button></td></tr>`).join('')
+      || `<tr><td colspan="5" class="text-center text-muted py-3">No containers pending delivery order.</td></tr>`;
+  } else if(deliveryTab==='transport'){
+    head.innerHTML = `<tr><th>DO Number</th><th>Container</th><th>Customer</th><th>DO Date</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="DO Issued");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.doNumber}</td><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.doDate}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-accent" onclick="openTransport('${c.id}')"><i class="fa-solid fa-truck me-1"></i>Assign Transport</button></td></tr>`).join('')
+      || `<tr><td colspan="6" class="text-center text-muted py-3">No containers pending transport.</td></tr>`;
+  } else {
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Vehicle</th><th>Driver</th><th>Dispatch Date</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Dispatched");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td class="mono">${c.vehicleNo}</td><td>${c.driverName}</td><td>${c.dispatchDate}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-outline-success" onclick="openConfirmDelivery('${c.id}')"><i class="fa-solid fa-check me-1"></i>Confirm Delivered</button></td></tr>`).join('')
+      || `<tr><td colspan="7" class="text-center text-muted py-3">No containers in transit.</td></tr>`;
+  }
+}
+function openDO(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-file-invoice me-2"></i>Issue Delivery Order — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">D.O. Number</label><input class="form-control" id="doNo" value="DO-${randInt(10000,99999)}"></div>
+     <div class="mb-2"><label class="form-label">D.O. Date</label><input type="date" class="form-control" id="doDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">Valid Until</label><input type="date" class="form-control" id="doValid" value="${todayISO(7)}"></div>`,
+    ()=>{
+      c.doNumber = document.getElementById('doNo').value; c.doDate = document.getElementById('doDate').value||todayISO();
+      c.status="DO Issued"; saveDB(); closeActionModal(); showToast(`Delivery Order ${c.doNumber} issued.`); renderDelivery();
+    });
+}
+function openTransport(id){
+  const c = DB.find(x=>x.id===id);
+  const vOpts = VEHICLES.map(v=>`<option>${v}</option>`).join(''); const dOpts = DRIVERS.map(d=>`<option>${d}</option>`).join('');
+  openActionModal(`<i class="fa-solid fa-truck me-2"></i>Transport Assignment — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Vehicle No</label><select class="form-select" id="trVeh">${vOpts}</select></div>
+     <div class="mb-2"><label class="form-label">Driver</label><select class="form-select" id="trDrv">${dOpts}</select></div>
+     <div class="mb-2"><label class="form-label">Dispatch Date</label><input type="date" class="form-control" id="trDate" value="${todayISO()}"></div>`,
+    ()=>{
+      c.vehicleNo = document.getElementById('trVeh').value; c.driverName = document.getElementById('trDrv').value;
+      c.dispatchDate = document.getElementById('trDate').value||todayISO(); c.status="Dispatched"; saveDB();
+      closeActionModal(); showToast(`${c.containerNo} dispatched via ${c.vehicleNo}.`); renderDelivery();
+    });
+}
+function openConfirmDelivery(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-check me-2"></i>Confirm Customer Delivery — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Delivery Date</label><input type="date" class="form-control" id="delDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">Received By</label><input class="form-control" id="delRecv" placeholder="Warehouse in-charge name"></div>`,
+    ()=>{
+      c.deliveryDate = document.getElementById('delDate').value||todayISO(); c.status="Delivered"; saveDB();
+      closeActionModal(); showToast(`${c.containerNo} delivered to customer.`); renderDelivery();
+    });
+}
+
+/* =====================================================================
+   GATE OUT & CLOSURE
+===================================================================== */
+let gateoutTab = 'return';
+document.getElementById('gateoutTabs').addEventListener('click', e=>{
+  const a = e.target.closest('a'); if(!a) return; e.preventDefault();
+  document.querySelectorAll('#gateoutTabs a').forEach(x=>x.classList.remove('active')); a.classList.add('active');
+  gateoutTab = a.dataset.gtab; renderGateOut();
+});
+function renderGateOut(){
+  const head = document.getElementById('gateoutHead'), body = document.getElementById('gateoutBody');
+  if(gateoutTab==='return'){
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Delivery Date</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Delivered");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.deliveryDate}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-navy" onclick="openEmptyReturn('${c.id}')"><i class="fa-solid fa-rotate-left me-1"></i>Record Empty Return</button></td></tr>`).join('')
+      || `<tr><td colspan="5" class="text-center text-muted py-3">No containers pending empty return.</td></tr>`;
+  } else if(gateoutTab==='out'){
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Empty Return Date</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Empty Returned");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.emptyReturnDate}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-accent" onclick="openGateOut('${c.id}')"><i class="fa-solid fa-door-closed me-1"></i>Gate Out</button></td></tr>`).join('')
+      || `<tr><td colspan="5" class="text-center text-muted py-3">No containers pending gate out.</td></tr>`;
+  } else {
+    head.innerHTML = `<tr><th>Container</th><th>Customer</th><th>Gate Out Date</th><th>Status</th><th>Action</th></tr>`;
+    const rows = DB.filter(c=>c.status==="Gated Out");
+    body.innerHTML = rows.map(c=>`<tr><td class="mono">${c.containerNo}</td><td>${c.customer}</td><td>${c.gateOutDate}</td><td>${statusBadge(c.status)}</td>
+      <td><button class="btn btn-sm btn-outline-success" onclick="openCloseJob('${c.id}')"><i class="fa-solid fa-box-archive me-1"></i>Close Job</button></td></tr>`).join('')
+      || `<tr><td colspan="5" class="text-center text-muted py-3">No containers pending job closure.</td></tr>`;
+  }
+}
+function openEmptyReturn(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-rotate-left me-2"></i>Empty Container Return — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Return Date</label><input type="date" class="form-control" id="erDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">Depot</label><input class="form-control" value="ACME ICD Empty Yard" disabled></div>`,
+    ()=>{
+      c.emptyReturnDate = document.getElementById('erDate').value||todayISO(); c.status="Empty Returned"; saveDB();
+      closeActionModal(); showToast(`${c.containerNo} empty return recorded.`); renderGateOut();
+    });
+}
+function openGateOut(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-door-closed me-2"></i>Gate Out — ${c.containerNo}`,
+    `<div class="mb-2"><label class="form-label">Gate Out Date</label><input type="date" class="form-control" id="goDate" value="${todayISO()}"></div>
+     <div class="mb-2"><label class="form-label">Gate Ref No</label><input class="form-control" id="goRef" value="GO-${randInt(10000,99999)}"></div>`,
+    ()=>{
+      c.gateOutDate = document.getElementById('goDate').value||todayISO(); c.status="Gated Out"; saveDB();
+      closeActionModal(); showToast(`${c.containerNo} gated out.`); renderGateOut();
+    });
+}
+function openCloseJob(id){
+  const c = DB.find(x=>x.id===id);
+  openActionModal(`<i class="fa-solid fa-box-archive me-2"></i>Job Closure — ${c.containerNo}`,
+    `<div class="small-muted mb-2">This finalizes the job file, locks all transaction records, and archives documents.</div>
+     <div class="mb-2"><label class="form-label">Closure Date</label><input type="date" class="form-control" id="clDate" value="${todayISO()}"></div>`,
+    ()=>{
+      c.closedDate = document.getElementById('clDate').value||todayISO(); c.status="Closed"; saveDB();
+      const inv = generateInvoiceForContainer(c.id);
+      closeActionModal();
+      showToast(`Job for ${c.containerNo} closed. Invoice ${inv?inv.invoiceNo:''} generated.`);
+      renderGateOut();
+    });
+}
+
+/* =====================================================================
+   CONTAINER TRACKING
+===================================================================== */
+function renderTracking(){
+  const sel = document.getElementById('trackSelect');
+  sel.innerHTML = DB.slice().sort((a,b)=>a.containerNo.localeCompare(b.containerNo)).map(c=>`<option value="${c.id}">${c.containerNo} — ${c.customer}</option>`).join('');
+  renderTrackingDetail();
+}
+function renderTrackingDetail(){
+  const id = document.getElementById('trackSelect').value; if(!id) return;
+  const c = DB.find(x=>x.id===id); if(!c) return;
+  const stIdx = STATUS_FLOW.indexOf(c.status);
+  const events = [
+    {label:"Container Arrival", date:c.arrivalDate, detail:`Vessel ${c.vessel} · B/L ${c.blNumber}`, idx:0},
+    {label:"ICD Gate In", date:c.gateInDate, detail:c.gateInDate?`Gated in at ACME ICD`:'', idx:2},
+    {label:"Yard Allocation", date:c.gateInDate&&c.yardLocation?c.gateInDate:'', detail:c.yardLocation?`Location: ${c.yardLocation}`:'', idx:3},
+    {label:"Customs Declaration", date:c.declarationDate, detail:c.declarationNo?`Declaration ${c.declarationNo}`:'', idx:4},
+    {label:"Duty Assessment", date:c.declarationDate&&c.assessedDuty?c.declarationDate:'', detail:c.assessedDuty?`Assessed ${fmtTZS(c.assessedDuty)}`:'', idx:5},
+    {label:"Duty Payment", date:c.dutyPaidDate, detail:c.dutyPaid?`Paid ${fmtTZS(c.dutyPaid)} (Ref: ${c.paymentRef})`:'', idx:6},
+    {label:"Customs Inspection", date:c.inspectionResult?c.dutyPaidDate:'', detail:c.inspectionResult||'', idx:7},
+    {label:"Customs Release", date:c.releaseDate, detail:c.releaseDate?'Cleared for delivery':'', idx:8},
+    {label:"Delivery Order Issued", date:c.doDate, detail:c.doNumber?`D.O. ${c.doNumber}`:'', idx:9},
+    {label:"Dispatch", date:c.dispatchDate, detail:c.dispatchDate?`Vehicle ${c.vehicleNo} · Driver ${c.driverName}`:'', idx:10},
+    {label:"Customer Delivery", date:c.deliveryDate, detail:c.deliveryDate?'Delivered to consignee':'', idx:11},
+    {label:"Empty Container Return", date:c.emptyReturnDate, detail:c.emptyReturnDate?'Returned to empty yard':'', idx:12},
+    {label:"Gate Out", date:c.gateOutDate, detail:c.gateOutDate?'Exited ICD premises':'', idx:13},
+    {label:"Job Closure", date:c.closedDate, detail:c.closedDate?'File archived':'', idx:14},
+  ];
+  document.getElementById('trackingDetail').innerHTML = `
+    <div class="row g-3 mt-1">
+      <div class="col-lg-4">
+        <div class="card-x p-3">
+          <div class="section-hd">Container Summary</div>
+          <table class="table table-sm mb-0">
+            <tr><td class="text-muted">Container No</td><td class="mono fw-bold">${c.containerNo}</td></tr>
+            <tr><td class="text-muted">Size / Type</td><td>${c.size} · ${c.type}</td></tr>
+            <tr><td class="text-muted">Shipping Line</td><td>${c.shippingLine}</td></tr>
+            <tr><td class="text-muted">Vessel</td><td>${c.vessel}</td></tr>
+            <tr><td class="text-muted">Customer</td><td>${c.customer}</td></tr>
+            <tr><td class="text-muted">CHA</td><td>${c.cha}</td></tr>
+            <tr><td class="text-muted">Cargo</td><td>${c.cargoType}</td></tr>
+            <tr><td class="text-muted">Current Status</td><td>${statusBadge(c.status)}</td></tr>
+            <tr><td class="text-muted">Days in Yard</td><td>${daysInYard(c)}</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="card-x p-3">
+          <div class="section-hd">Lifecycle Timeline</div>
+          <div class="timeline">
+            ${events.map(e=>`<div class="tl-item ${e.idx<stIdx?'done':e.idx===stIdx?'now':''}">
+              <div class="tl-dot"></div><div class="tl-title">${e.label}</div>
+              <div class="tl-meta">${e.date? e.date+(e.detail? ' · '+e.detail:'') : (e.idx<=stIdx?'—':'Pending')}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* =====================================================================
+   REPORT: GATE IN / OUT
+===================================================================== */
+function getGateRepRows(){
+  const type = document.getElementById('gateRepType').value;
+  const rows = [];
+  DB.forEach(c=>{
+    if(c.gateInDate && type!=='out') rows.push({Container:c.containerNo, Movement:'Gate In', Date:c.gateInDate, Line:c.shippingLine, Customer:c.customer});
+    if(c.gateOutDate && type!=='in') rows.push({Container:c.containerNo, Movement:'Gate Out', Date:c.gateOutDate, Line:c.shippingLine, Customer:c.customer});
+  });
+  return rows.sort((a,b)=>b.Date.localeCompare(a.Date));
+}
+function renderRepGate(){
+  const rows = getGateRepRows();
+  const giCount = rows.filter(r=>r.Movement==='Gate In').length, goCount = rows.filter(r=>r.Movement==='Gate Out').length;
+  document.getElementById('gateRepKpi').innerHTML = [
+    kpiCard("Total Gate In", giCount, "fa-door-open","#0d9488"),
+    kpiCard("Total Gate Out", goCount, "fa-door-closed","#334155"),
+    kpiCard("Net In Yard", giCount-goCount, "fa-warehouse","#2563eb"),
+  ].join('');
+  document.getElementById('gateRepBody').innerHTML = rows.map(r=>{
+    const c = DB.find(x=>x.containerNo===r.Container);
+    return `<tr><td class="mono">${r.Container}</td><td>${r.Movement==='Gate In'?'<span class="badge-status" style="background:#0d948822;color:#0d9488">Gate In</span>':'<span class="badge-status" style="background:#33415522;color:#334155">Gate Out</span>'}</td>
+    <td>${r.Date}</td><td>08:${randInt(10,55)}</td><td>${r.Line}</td><td>${r.Customer}</td><td class="mono">${c.vehicleNo||'—'}</td><td class="mono">${r.Movement==='Gate In'?'GI-'+randInt(10000,99999):'GO-'+randInt(10000,99999)}</td></tr>`;
+  }).join('') || `<tr><td colspan="8" class="text-center text-muted py-3">No records found.</td></tr>`;
+}
+document.getElementById('gateRepType').addEventListener('change', renderRepGate);
+
+/* =====================================================================
+   REPORT: YARD OCCUPANCY
+===================================================================== */
+function renderRepYard(){
+  const data = YARD_BLOCKS.map(b=>{
+    const occ = Math.min(b.capacity, DB.filter(c=>c.yardLocation && c.yardLocation.startsWith(b.block[6])).length + randInt(5,15));
+    return {...b, occ};
+  });
+  const totalCap = data.reduce((s,b)=>s+b.capacity,0), totalOcc = data.reduce((s,b)=>s+b.occ,0);
+  document.getElementById('yardRepKpi').innerHTML = [
+    kpiCard("Total Capacity", totalCap+" TEU", "fa-warehouse","#2563eb"),
+    kpiCard("Occupied", totalOcc+" TEU", "fa-cubes","#e8890c"),
+    kpiCard("Available", (totalCap-totalOcc)+" TEU", "fa-square","#16a34a"),
+    kpiCard("Overall Utilization", Math.round(totalOcc/totalCap*100)+"%", "fa-gauge-high","#7c3aed"),
+  ].join('');
+  destroyChart('yardRep');
+  charts.yardRep = new Chart(document.getElementById('chYardRep'), {type:'pie', data:{labels:data.map(b=>b.block.split(' - ')[0]), datasets:[{data:data.map(b=>b.occ), backgroundColor:['#123a6b','#0d9488','#e8890c','#7c3aed']}]}, options:{plugins:{legend:{position:'bottom',labels:{font:{size:9}}}}}});
+  document.getElementById('yardRepBody').innerHTML = data.map(b=>{
+    const pct = Math.round(b.occ/b.capacity*100); const color = pct>85?'#dc2626':pct>60?'#d97706':'#16a34a';
+    return `<tr><td>${b.block}</td><td>${b.capacity}</td><td>${b.occ}</td><td>${b.capacity-b.occ}</td>
+    <td><div class="d-flex align-items-center gap-2"><div class="progress flex-grow-1"><div class="progress-bar" style="width:${pct}%;background:${color}"></div></div><span style="color:${color};font-weight:700;font-size:.75rem">${pct}%</span></div></td></tr>`;
+  }).join('');
+}
+
+/* =====================================================================
+   REPORT: AGING & DEMURRAGE
+===================================================================== */
+function getAgingRows(){
+  const bucket = document.getElementById('agingBucket').value;
+  return DB.filter(c=>c.gateInDate).map(c=>{
+    const days = daysInYard(c);
+    const free = freeDays();
+    const chargeable = Math.max(0, days-free);
+    const demurrage = chargeable*demurrageRate();
+    const storage = days*storageRatePerDay();
+    let b = days<=3?'0-3':days<=7?'4-7':days<=14?'8-14':'15+';
+    return {Container:c.containerNo, Customer:c.customer, GateIn:c.gateInDate, Days:days, Free:free, Chargeable:chargeable, Demurrage:demurrage, Storage:storage, Bucket:b, Status:c.status};
+  }).filter(r=> !bucket || r.Bucket===bucket).sort((a,b)=>b.Days-a.Days);
+}
+function renderRepAging(){
+  const rows = getAgingRows();
+  const critical = rows.filter(r=>r.Bucket==='15+').length;
+  const totalDemurrage = rows.reduce((s,r)=>s+r.Demurrage,0);
+  const totalStorage = rows.reduce((s,r)=>s+r.Storage,0);
+  document.getElementById('agingKpi').innerHTML = [
+    kpiCard("Containers Tracked", rows.length, "fa-cubes","#2563eb"),
+    kpiCard("Critical (15+ days)", critical, "fa-triangle-exclamation","#dc2626"),
+    kpiCard("Total Demurrage Exposure", fmtTZS(totalDemurrage), "fa-sack-dollar","#d97706"),
+    kpiCard("Total Storage Charges", fmtTZS(totalStorage), "fa-warehouse","#7c3aed"),
+  ].join('');
+  document.getElementById('agingBody').innerHTML = rows.map(r=>{
+    const color = r.Bucket==='15+'?'#dc2626':r.Bucket==='8-14'?'#d97706':r.Bucket==='4-7'?'#2563eb':'#16a34a';
+    return `<tr><td class="mono">${r.Container}</td><td>${r.Customer}</td><td>${r.GateIn}</td><td><b style="color:${color}">${r.Days}</b></td>
+    <td>${r.Free}</td><td>${r.Chargeable}</td><td>${fmtTZS(r.Demurrage)}</td><td>${fmtTZS(r.Storage)}</td><td>${statusBadge(r.Status)}</td></tr>`;
+  }).join('') || `<tr><td colspan="9" class="text-center text-muted py-3">No containers match this bucket.</td></tr>`;
+}
+document.getElementById('agingBucket').addEventListener('change', renderRepAging);
+
+/* =====================================================================
+   REPORT: CUSTOMS CLEARANCE
+===================================================================== */
+function renderRepCustoms(){
+  const rows = DB.filter(c=>c.declarationNo);
+  const totalAssessed = rows.reduce((s,c)=>s+c.assessedDuty,0), totalPaid = rows.reduce((s,c)=>s+c.dutyPaid,0);
+  document.getElementById('custRepKpi').innerHTML = [
+    kpiCard("Declarations Lodged", rows.length, "fa-file-signature","#2563eb"),
+    kpiCard("Total Duty Assessed", fmtTZS(totalAssessed), "fa-calculator","#7c3aed"),
+    kpiCard("Total Duty Collected", fmtTZS(totalPaid), "fa-sack-dollar","#16a34a"),
+    kpiCard("Outstanding Balance", fmtTZS(totalAssessed-totalPaid), "fa-triangle-exclamation","#dc2626"),
+  ].join('');
+  const importDuty = Math.round(totalAssessed*0.25/0.475), vat = Math.round(totalAssessed*0.18/0.475*1.05), excise=Math.round(totalAssessed*0.05/0.475), railway=Math.round(totalAssessed*0.015/0.475);
+  destroyChart('customs');
+  charts.customs = new Chart(document.getElementById('chCustoms'), {type:'bar', data:{labels:['Import Duty','VAT','Excise','Railway Levy'], datasets:[{data:[importDuty,vat,excise,railway], backgroundColor:['#123a6b','#0d9488','#e8890c','#7c3aed'], borderRadius:4}]}, options:{plugins:{legend:{display:false}}, indexAxis:'y'}});
+  document.getElementById('custRepBody').innerHTML = rows.map(c=>{
+    const bal = c.assessedDuty-c.dutyPaid;
+    return `<tr><td class="mono">${c.declarationNo}</td><td class="mono">${c.containerNo}</td><td>${c.customer}</td>
+    <td>${fmtTZS(c.assessedDuty)}</td><td>${fmtTZS(c.dutyPaid)}</td><td class="${bal>0?'text-danger fw-bold':''}">${fmtTZS(bal)}</td>
+    <td>${bal<=0?'<span class="badge-status" style="background:#dcfce7;color:#166534">Fully Paid</span>':'<span class="badge-status" style="background:#fef3c7;color:#92400e">Balance Due</span>'}</td></tr>`;
+  }).join('') || `<tr><td colspan="7" class="text-center text-muted py-3">No declarations lodged yet.</td></tr>`;
+}
+
+/* =====================================================================
+   REPORT: REVENUE & BILLING
+===================================================================== */
+function renderRepRevenue(){
+  const rows = DB.filter(c=>c.gateInDate).map(c=>{
+    const days = daysInYard(c);
+    const handling = c.size==="40ft"||c.size==="40HC" ? 280000 : 180000;
+    const storage = days*storageRatePerDay();
+    const demurrage = Math.max(0,days-freeDays())*demurrageRate();
+    return {invoice:"INV-"+randInt(10000,99999), container:c.containerNo, customer:c.customer, handling, storage, demurrage, total:handling+storage+demurrage, status: c.status==="Closed"?"Paid":(days>10?"Overdue":"Pending")};
+  });
+  const totalHandling = rows.reduce((s,r)=>s+r.handling,0), totalStorage = rows.reduce((s,r)=>s+r.storage,0), totalDemurrage = rows.reduce((s,r)=>s+r.demurrage,0);
+  const grandTotal = totalHandling+totalStorage+totalDemurrage;
+  document.getElementById('revKpi').innerHTML = [
+    kpiCard("Total Revenue", fmtTZS(grandTotal), "fa-sack-dollar","#16a34a"),
+    kpiCard("Handling Charges", fmtTZS(totalHandling), "fa-boxes-stacked","#2563eb"),
+    kpiCard("Storage Charges", fmtTZS(totalStorage), "fa-warehouse","#7c3aed"),
+    kpiCard("Demurrage Charges", fmtTZS(totalDemurrage), "fa-triangle-exclamation","#d97706"),
+  ].join('');
+  destroyChart('revType');
+  charts.revType = new Chart(document.getElementById('chRevType'), {type:'doughnut', data:{labels:['Handling','Storage','Demurrage'], datasets:[{data:[totalHandling,totalStorage,totalDemurrage], backgroundColor:['#123a6b','#0d9488','#d97706']}]}, options:{plugins:{legend:{position:'bottom'}}}});
+  const custTotals = {}; rows.forEach(r=>custTotals[r.customer]=(custTotals[r.customer]||0)+r.total);
+  const topC = Object.entries(custTotals).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  destroyChart('revCust');
+  charts.revCust = new Chart(document.getElementById('chRevCust'), {type:'bar', data:{labels:topC.map(x=>x[0]), datasets:[{data:topC.map(x=>x[1]), backgroundColor:'#e8890c', borderRadius:4}]}, options:{plugins:{legend:{display:false}}, indexAxis:'y'}});
+  document.getElementById('revBody').innerHTML = rows.map(r=>`<tr><td class="mono">${r.invoice}</td><td class="mono">${r.container}</td><td>${r.customer}</td>
+    <td>${fmtTZS(r.handling)}</td><td>${fmtTZS(r.storage)}</td><td>${fmtTZS(r.demurrage)}</td><td class="fw-bold">${fmtTZS(r.total)}</td>
+    <td>${r.status==='Paid'?'<span class="badge-status" style="background:#dcfce7;color:#166534">Paid</span>':r.status==='Overdue'?'<span class="badge-status" style="background:#fee2e2;color:#991b1b">Overdue</span>':'<span class="badge-status" style="background:#fef3c7;color:#92400e">Pending</span>'}</td></tr>`).join('');
+}
+
+/* =====================================================================
+   CLOCK & INIT
+===================================================================== */
+setInterval(()=>{ document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }, 1000);
+showView('dashboard');
+</script>
+</body>
+</html>
